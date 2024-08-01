@@ -7,6 +7,7 @@ Toolbar::Toolbar(int size)
     m_style.setFillColor({0.25f, 0.25f, 0.25f});
     m_grid = new GridLayout(1, size);
     m_grid->setId(id() + L"GridLayout");
+    m_grid->adjustWidgetSize(true);
     addChild(m_grid);
 }
 
