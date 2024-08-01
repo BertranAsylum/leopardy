@@ -145,9 +145,6 @@ bool Widget::disabled() const
 void Widget::setVisible(bool visible)
 {
     m_visible = visible;
-    for (auto &c : m_children) {
-        c->setVisible(visible);
-    }
 }
 
 void Widget::show()
@@ -250,8 +247,8 @@ bool Widget::contains(int x, int y) const
 
 void Widget::onPaint(Canvas *canvas)
 {
-    if (m_visible) {
-        for (const auto &c : m_children) {
+    for (const auto &c : m_children) {
+        if (c->visible()) {
             c->onPaint(canvas);
         }
     }
