@@ -45,7 +45,11 @@ void TextButton::onPaint(Canvas *canvas)
     layout.setAlignment(TextLayout::HAlignment::Center);
     layout.setAlignment(TextLayout::VAlignment::Center);
 
-    canvas->drawText(m_text, m_font, layout, Style::color(Style::ColorTag::Foreground));
+    const auto &color = Style::color(Style::ColorTag::Foreground);
+    canvas->drawText(m_text, m_font, layout,
+                     enabled()
+                         ? color
+                         : Style::color(color, Style::ColorShift::MuchDarker));
 
     Button::onPaint(canvas);
 }
