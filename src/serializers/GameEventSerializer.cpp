@@ -1,0 +1,160 @@
+#include "GameEvent.h"
+
+#include "serializers/PrimitiveSerializer.h"
+#include "serializers/StdWStringSerializer.h"
+
+#include <cassert>
+
+std::ostream &operator<<(std::ostream &s, const GameEvent *ep)
+{
+    assert(ep);
+
+    if (auto *cep = ep->as<GameSessionReset>()) {
+        s << bytes(1);
+    }
+    else if (auto *cep = ep->as<GameSessionUpdated>()) {
+        s << bytes(2) << cep->session;
+    }
+    else if (auto *cep = ep->as<PlayerJoinRequest>()) {
+        s << bytes(3) << cep->player;
+    }
+    else if (auto *cep = ep->as<PlayerJoined>()) {
+        s << bytes(4) << cep->player << cep->session;
+    }
+    else if (auto *cep = ep->as<ObserverJoinRequest>()) {
+        s << bytes(5) << cep->observer;
+    }
+    else if (auto *cep = ep->as<ObserverJoined>()) {
+        s << bytes(6) << cep->observer;
+    }
+    else if (auto *cep = ep->as<PlayerChoosing>()) {
+        s << bytes(7) << bytes(cep->playerNum);
+    }
+    else if (auto *cep = ep->as<QuestionChosen>()) {
+        s << bytes(8) << bytes(cep->categoryNum) << bytes(cep->priceNum);
+    }
+    else if (auto *cep = ep->as<PlayerAnswerRequest>()) {
+        s << bytes(9) << bytes(cep->playerNum);
+    }
+    else if (auto *cep = ep->as<PlayerAnswering>()) {
+        s << bytes(10) << bytes(cep->playerNum);
+    }
+    else if (auto *cep = ep->as<PlayerTypingAnswer>()) {
+        s << bytes(11) << cep->answer;
+    }
+    else if (auto *cep = ep->as<PlayerIsRight>()) {
+        s << bytes(12) << bytes(cep->scoreIncrease);
+    }
+    else if (auto *cep = ep->as<PlayerIsWrong>()) {
+        s << bytes(13) << bytes(cep->scoreDecrease);
+    }
+    else if (auto *cep = ep->as<NextRound>()) {
+        s << bytes(14);
+    }
+    else if (auto *cep = ep->as<PlayerWin>()) {
+        s << bytes(15) << bytes(cep->playerNum);
+    }
+    else {
+        assert("Unsupported game event serialization" && false);
+    }
+    return s;
+}
+
+std::istream &operator>>(std::istream &s, GameEvent *&ep)
+{
+    int type = 0;
+    s >> bytes(type);
+
+    switch (type) {
+        case 1: {
+            ep = new GameSessionReset;
+            break;
+        }
+        case 2: {
+            auto *cep = new GameSessionUpdated;
+            s >> cep->session;
+            ep = cep;
+            break;
+        }
+        case 3: {
+            auto *cep = new PlayerJoinRequest;
+            s >> cep->player;
+            ep = cep;
+            break;
+        }
+        case 4: {
+            auto *cep = new PlayerJoined;
+            s >> cep->player >> cep->session;
+            ep = cep;
+            break;
+        }
+        case 5: {
+            auto *cep = new ObserverJoinRequest;
+            s >> cep->observer;
+            ep = cep;
+            break;
+        }
+        case 6: {
+            auto *cep = new ObserverJoined;
+            s >> cep->observer;
+            ep = cep;
+            break;
+        }
+        case 7: {
+            auto *cep = new PlayerChoosing;
+            s >> bytes(cep->playerNum);
+            ep = cep;
+            break;
+        }
+        case 8: {
+            auto *cep = new QuestionChosen;
+            s >> bytes(cep->categoryNum) >> bytes(cep->priceNum);
+            ep = cep;
+            break;
+        }
+        case 9: {
+            auto *cep = new PlayerAnswerRequest;
+            s >> bytes(cep->playerNum);
+            ep = cep;
+            break;
+        }
+        case 10: {
+            auto *cep = new PlayerAnswering;
+            s >> bytes(cep->playerNum);
+            ep = cep;
+            break;
+        }
+        case 11: {
+            auto *cep = new PlayerTypingAnswer;
+            s >> cep->answer;
+            ep = cep;
+            break;
+        }
+        case 12: {
+            auto *cep = new PlayerIsRight;
+            s >> bytes(cep->scoreIncrease);
+            ep = cep;
+            break;
+        }
+        case 13: {
+            auto *cep = new PlayerIsWrong;
+            s >> bytes(cep->scoreDecrease);
+            ep = cep;
+            break;
+        }
+        case 14: {
+            ep = new NextRound;
+            break;
+        }
+        case 15: {
+            auto *cep = new PlayerWin;
+            s >> bytes(cep->playerNum);
+            ep = cep;
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    return s;
+}
