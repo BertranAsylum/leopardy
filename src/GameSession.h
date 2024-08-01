@@ -15,7 +15,8 @@ public:
             ViewingQestion,
             PlayerAnswering,
             RoundFinished,
-            GameFinished
+            GameFinished,
+            ShowingWinner
         };
 
         Stage currentStage = Stage::Lobby;

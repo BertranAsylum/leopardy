@@ -156,7 +156,12 @@ void GameSession::decreasePlayerScore(int value)
         m_state.currentStage = State::Stage::SelectingPlayer;
     }
     else {
-        m_state.currentStage = State::Stage::RoundFinished;
+        if (m_state.currentRound == m_gameSet.rounds.size() - 1) {
+            m_state.currentStage = State::Stage::GameFinished;
+        }
+        else {
+            m_state.currentStage = State::Stage::RoundFinished;
+        }
     }
 
     m_state.questionCategoryNum = -1;
@@ -178,10 +183,10 @@ void GameSession::nextRound()
 
 void GameSession::playerWin(int playerNum)
 {
-    assert(m_state.currentStage == State::Stage::RoundFinished);
+    assert(m_state.currentStage == State::Stage::GameFinished);
     assert(m_state.currentRound == m_gameSet.rounds.size() - 1);
 
-    m_state.currentStage = State::Stage::GameFinished;
+    m_state.currentStage = State::Stage::ShowingWinner;
     m_state.questionCategoryNum = -1;
     m_state.questionPriceNum = -1;
     m_state.playerNum = playerNum;
@@ -194,7 +199,7 @@ GameSession::State GameSession::state() const
 
 Player GameSession::winner() const
 {
-    assert(m_state.currentStage == State::Stage::GameFinished);
+    assert(m_state.currentStage == State::Stage::ShowingWinner);
     return m_players.at(m_state.playerNum);
 }
 
