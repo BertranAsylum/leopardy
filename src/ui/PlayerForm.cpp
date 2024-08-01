@@ -23,9 +23,16 @@ void PlayerForm::setup(GameController *gameController, Widget *parent)
             || event->as<NextRound>()) {
             togglePlayerGrid(true);
         }
+        else if (event->as<PlayerChoosing>()
+            || event->as<QuestionChosen>()
+            || event->as<PlayerAnswering>()) {
+            togglePlayerGrid(false);
+            updatePlayersActiveSign();
+        }
         else if (event->as<PlayerIsRight>()
             || event->as<PlayerIsWrong>()) {
             togglePlayerGrid(true);
+            updatePlayersActiveSign();
             updatePlayersScore();
         }
         else {
@@ -48,6 +55,8 @@ void PlayerForm::reset()
 {
     m_playerGrid->clearChildren();
     updatePlayerGrid();
+    updatePlayersActiveSign();
+    updatePlayersScore();
 
     const auto stage = m_gameController->gameSession()->state().currentStage;
     togglePlayerGrid(stage == GameSession::State::Stage::SelectingPlayer);
@@ -79,6 +88,21 @@ void PlayerForm::togglePlayerGrid(bool enable)
         for (auto *c : m_playerGrid->children()) {
             c->setEnabled(enable);
         }
+    }
+}
+
+void PlayerForm::updatePlayersActiveSign()
+{
+    auto playerNum = 0;
+    for (auto *c : m_playerGrid->children()) {
+        if (auto *playerCard = dynamic_cast<PlayerCard*>(c)) {
+            const auto active =
+                (m_gameController->gameSession()->state().currentStage == GameSession::State::ChoosingQuestion
+                    || m_gameController->gameSession()->state().currentStage == GameSession::State::PlayerAnswering)
+                && playerNum == m_gameController->gameSession()->state().playerNum;
+            playerCard->setActive(active);
+        }
+        playerNum++;
     }
 }
 

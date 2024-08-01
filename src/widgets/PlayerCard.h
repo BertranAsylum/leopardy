@@ -8,8 +8,11 @@ class TextLabel;
 class PlayerCard : public Card {
 public:
     explicit PlayerCard(const Player &player);
+    void setActive(bool active);
     void setScore(int score);
 
 private:
+    std::wstring m_nickname;
+    TextLabel *m_nicknameLabel = nullptr;
     TextLabel *m_scoreLabel = nullptr;
 };

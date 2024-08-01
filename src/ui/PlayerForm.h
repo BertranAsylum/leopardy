@@ -12,6 +12,7 @@ private:
     void reset();
     void updatePlayerGrid();
     void togglePlayerGrid(bool enable);
+    void updatePlayersActiveSign();
     void updatePlayersScore();
 
 private:

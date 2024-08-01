@@ -4,9 +4,12 @@
 
 PlayerCard::PlayerCard(const Player &player)
 {
-    auto *nicknameLabel = new TextLabel(player.nickname);
-    nicknameLabel->setId(L"NicknameLabel");
-    nicknameLabel->setMouseTransparent(true);
+    m_nickname = player.nickname;
+
+    m_nicknameLabel = new TextLabel(m_nickname);
+    m_nicknameLabel->setId(L"NicknameLabel");
+    m_nicknameLabel->setMouseTransparent(true);
+    setActive(false);
 
     m_scoreLabel = new TextLabel();
     m_scoreLabel->setId(L"ScoreLabel");
@@ -19,8 +22,15 @@ PlayerCard::PlayerCard(const Player &player)
     gridLayout->setParent(this);
     gridLayout->setMouseTransparent(true);
 
-    gridLayout->addWidget(0, 0, nicknameLabel);
+    gridLayout->addWidget(0, 0, m_nicknameLabel);
     gridLayout->addWidget(4, 0, m_scoreLabel);
+}
+
+void PlayerCard::setActive(bool active)
+{
+    m_nicknameLabel->setText(active
+                                 ? L"\u2666 " + m_nickname + L" \u2666"
+                                 : m_nickname);
 }
 
 void PlayerCard::setScore(int score)
