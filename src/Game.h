@@ -21,6 +21,7 @@ public:
     bool joinGameAsObserver(const GameOptions &opts) override;
     bool quitToMenu() override;
 
+    const Participant *thisParticipant() override;
     const GameSession *gameSession() const override;
     void onEvent(const EventCallback &callback) override;
     void pushEvent(const std::shared_ptr<GameEvent> &event) override;

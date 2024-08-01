@@ -76,6 +76,11 @@ bool Game::quitToMenu()
     return true;
 }
 
+const Participant *Game::thisParticipant()
+{
+    return m_thisParticipant.get();
+}
+
 const GameSession *Game::gameSession() const
 {
     return &m_gameSession;
