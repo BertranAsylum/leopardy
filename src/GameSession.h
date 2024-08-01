@@ -30,13 +30,15 @@ public:
 
     GameSession() = default;
     void init(const GameSet &gameSet, const Leader &leader);
+    bool initialized() const;
 
     GameSet gameSet() const;
     Leader leader() const;
 
-    bool addPlayer(const Player &player);
+    void addPlayer(const Player &player);
     Player player(int playerNum) const;
     std::vector<Player> players() const;
+    bool hasPlayer(const Player &player) const;
 
     void addObserver(const Observer &observer);
     std::vector<Observer> observers() const;
@@ -49,8 +51,8 @@ public:
     void choosingQuestion(int playerNum);
     void viewingQuestion(int categoryNum, int priceNum);
     void playerAnswering(int playerNum);
-    void increasePlayerScore(int playerNum, int value);
-    void decreasePlayerScore(int playerNum, int value);
+    void increasePlayerScore(int value);
+    void decreasePlayerScore(int value);
     void nextRound();
     void playerWin(int playerNum);
 

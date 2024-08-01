@@ -8,6 +8,11 @@ void GameSession::init(const GameSet &gameSet, const Leader &leader)
     m_leader = leader;
 }
 
+bool GameSession::initialized() const
+{
+    return !m_gameSet.rounds.empty();
+}
+
 GameSet GameSession::gameSet() const
 {
     return m_gameSet;
@@ -18,23 +23,11 @@ Leader GameSession::leader() const
     return m_leader;
 }
 
-bool GameSession::addPlayer(const Player &player)
+void GameSession::addPlayer(const Player &player)
 {
-    const bool contains = std::find_if(m_players.begin(), m_players.end(), [player](const Player &p)
-    {
-        return p.nickname == player.nickname;
-    }) != m_players.end();
-
-    if (contains) {
-        return true;
+    if (!hasPlayer(player)) {
+        m_players.push_back(player);
     }
-
-    if (m_players.size() == 3) {
-        return false;
-    }
-
-    m_players.push_back(player);
-    return true;
 }
 
 Player GameSession::player(int playerNum) const
@@ -48,6 +41,14 @@ Player GameSession::player(int playerNum) const
 std::vector<Player> GameSession::players() const
 {
     return m_players;
+}
+
+bool GameSession::hasPlayer(const Player &player) const
+{
+    return std::find_if(m_players.begin(), m_players.end(), [player](const Player &p)
+    {
+        return p.nickname == player.nickname;
+    }) != m_players.end();
 }
 
 void GameSession::addObserver(const Observer &observer)
@@ -123,11 +124,13 @@ void GameSession::playerAnswering(int playerNum)
     m_state.playerNum = playerNum;
 }
 
-void GameSession::increasePlayerScore(int playerNum, int value)
+void GameSession::increasePlayerScore(int value)
 {
     assert(m_state.currentStage == State::Stage::PlayerAnswering);
-    assert(playerNum < m_players.size());
+    assert(m_state.playerNum < m_players.size());
     assert(m_state.currentRound < m_gameSet.rounds.size());
+
+    m_players.at(m_state.playerNum).score += value;
 
     if (gameSet().rounds.at(m_state.currentRound).hasUnusedCards()) {
         m_state.currentStage = State::Stage::SelectingPlayer;
@@ -139,15 +142,15 @@ void GameSession::increasePlayerScore(int playerNum, int value)
     m_state.questionCategoryNum = -1;
     m_state.questionPriceNum = -1;
     m_state.playerNum = -1;
-
-    m_players.at(playerNum).score += value;
 }
 
-void GameSession::decreasePlayerScore(int playerNum, int value)
+void GameSession::decreasePlayerScore(int value)
 {
     assert(m_state.currentStage == State::Stage::PlayerAnswering);
-    assert(playerNum < m_players.size());
+    assert(m_state.playerNum < m_players.size());
     assert(m_state.currentRound < m_gameSet.rounds.size());
+
+    m_players.at(m_state.playerNum).score -= value;
 
     if (gameSet().rounds.at(m_state.currentRound).hasUnusedCards()) {
         m_state.currentStage = State::Stage::SelectingPlayer;
@@ -159,8 +162,6 @@ void GameSession::decreasePlayerScore(int playerNum, int value)
     m_state.questionCategoryNum = -1;
     m_state.questionPriceNum = -1;
     m_state.playerNum = -1;
-
-    m_players.at(playerNum).score -= value;
 }
 
 void GameSession::nextRound()

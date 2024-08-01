@@ -14,9 +14,13 @@ static const std::wstring networkLostErrorMessage =
 static const std::wstring networkProtocolErrorMessage =
     L"Network error\n\n"
     L"Fatal protocol violation";
+static const std::wstring lobbyIsFullMessage =
+    L"Player join rejected\n\n"
+    L"Lobby is full";
 
 Game::Game(Widget *window)
 {
+    m_eventCallbacks.push_back([this](const std::shared_ptr<GameEvent> &event) { onGameEvent(event); });
     m_mainForm.setup(this, window);
 }
 
@@ -38,9 +42,9 @@ bool Game::createGame(const GameOptions &opts)
 
     m_thisParticipant = std::make_shared<Leader>(leader);
     m_gameSession.init(GameSetLoader::load(), leader);
-
     m_mainForm.showGame();
-    pushEvent(std::make_shared<GameSessionReset>());
+
+    pushEvent(std::make_shared<UiReset>());
     return true;
 }
 
@@ -84,9 +88,11 @@ void Game::onEvent(const EventCallback &callback)
 
 void Game::pushEvent(const std::shared_ptr<GameEvent> &event)
 {
-    if (!m_networkChannel.sendMessage(Network::Channel::Message(event.get()))) {
-        raiseError(networkLostErrorMessage + L": " + m_networkChannel.error());
-        return;
+    if (!event->local()) {
+        if (!m_networkChannel.sendMessage(Network::Channel::Message(event.get()))) {
+            raiseError(networkLostErrorMessage + L": " + m_networkChannel.error());
+            return;
+        }
     }
     for (const auto &c : m_eventCallbacks) {
         c(event);
@@ -125,33 +131,75 @@ void Game::onNetworkChannelMessage(const Network::Channel::Message &msg)
         raiseError(networkProtocolErrorMessage + L": Unsupported message received");
         return;
     }
-
-    if (auto *e = event->as<GameSessionReset>()) {
-        // NOTE: Ignore external session reset
+    if (event->local()) {
+        raiseError(networkProtocolErrorMessage + L": Unexpected local event received");
         return;
-    }
-    else if (auto *e = event->as<PlayerJoinRequest>()) {
-        if (m_thisParticipant->role() == Participant::Role::Leader) {
-            if (m_gameSession.addPlayer(e->player)) {
-                auto joined = std::make_shared<PlayerJoined>();
-                joined->player = e->player;
-                joined->session = m_gameSession;
-                pushEvent(joined);
-            }
-        }
-    }
-    else if (auto *e = event->as<PlayerJoined>()) {
-        if (m_thisParticipant->role() == Participant::Role::Player) {
-            if (e->player.nickname == m_thisParticipant->nickname) {
-                m_gameSession = e->session;
-                m_mainForm.showGame();
-                pushEvent(std::make_shared<GameSessionReset>());
-            }
-        }
     }
 
     const std::shared_ptr<GameEvent> eventShared(event);
     for (const auto &c : m_eventCallbacks) {
         c(eventShared);
+    }
+}
+
+void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
+{
+    if (auto *e = event->as<GameSessionSync>()) {
+        if (!m_gameSession.initialized()) {
+            m_gameSession = e->session;
+            m_mainForm.showGame();
+            pushEvent(std::make_shared<UiReset>());
+        }
+    }
+    else if (auto *e = event->as<PlayerJoinRequest>()) {
+        if (m_thisParticipant->role() == Participant::Role::Leader) {
+            if (m_gameSession.players().size() < 3 || m_gameSession.hasPlayer(e->player)) {
+                auto sync = std::make_shared<GameSessionSync>();
+                sync->session = m_gameSession;
+                pushEvent(sync);
+
+                auto joined = std::make_shared<PlayerJoined>();
+                joined->player = e->player;
+                pushEvent(joined);
+            }
+            else {
+                auto rejected = std::make_shared<PlayerJoinRejected>();
+                rejected->player = e->player;
+                pushEvent(rejected);
+            }
+        }
+    }
+    else if (auto *e = event->as<PlayerJoinRejected>()) {
+        if (m_thisParticipant->role() == Participant::Role::Player
+            && m_thisParticipant->nickname == e->player.nickname) {
+            raiseError(lobbyIsFullMessage);
+        }
+    }
+    else if (auto *e = event->as<PlayerJoined>()) {
+        m_gameSession.addPlayer(e->player);
+    }
+    else if (auto *e = event->as<ObserverJoined>()) {
+        m_gameSession.addObserver(e->observer);
+    }
+    else if (auto *e = event->as<PlayerChoosing>()) {
+        m_gameSession.choosingQuestion(e->playerNum);
+    }
+    else if (auto *e = event->as<QuestionChosen>()) {
+        m_gameSession.viewingQuestion(e->categoryNum, e->priceNum);
+    }
+    else if (auto *e = event->as<PlayerAnswering>()) {
+        m_gameSession.playerAnswering(e->playerNum);
+    }
+    else if (auto *e = event->as<PlayerIsRight>()) {
+        m_gameSession.increasePlayerScore(e->scoreIncrease);
+    }
+    else if (auto *e = event->as<PlayerIsWrong>()) {
+        m_gameSession.decreasePlayerScore(e->scoreDecrease);
+    }
+    else if (auto *e = event->as<NextRound>()) {
+        m_gameSession.nextRound();
+    }
+    else if (auto *e = event->as<PlayerWin>()) {
+        m_gameSession.nextRound();
     }
 }

@@ -75,6 +75,11 @@ std::vector<Widget*> Widget::children() const
     return cs;
 }
 
+int Widget::childrenCount() const
+{
+    return m_children.size();
+}
+
 Widget *Widget::nextSibling() const
 {
     if (m_parent) {

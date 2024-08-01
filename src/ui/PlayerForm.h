@@ -10,6 +10,7 @@ public:
 
 private:
     void reset();
+    void updatePlayerGrid();
 
 private:
     GameController *m_gameController = nullptr;

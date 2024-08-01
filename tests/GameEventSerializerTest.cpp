@@ -60,10 +60,12 @@ static GameSession gameSessionTestObject()
     return session;
 }
 
-void testGameSessionReset()
+void testSessionSync()
 {
     std::stringstream os;
-    auto eventToWrite = std::make_shared<GameSessionReset>();
+    auto eventToWrite = std::make_shared<GameSessionSync>();
+    eventToWrite->session = gameSessionTestObject();
+
     os << eventToWrite.get();
 
     GameEvent *eventToRead = nullptr;
@@ -72,7 +74,7 @@ void testGameSessionReset()
 
     TEST_EQ(eventToRead == nullptr, false);
 
-    auto *concreteEventToRead = eventToRead->as<GameSessionReset>();
+    auto *concreteEventToRead = eventToRead->as<GameSessionSync>();
     TEST_EQ(concreteEventToRead == nullptr, false);
 }
 
@@ -80,7 +82,8 @@ void testPlayerJoinRequest()
 {
     std::stringstream os;
     auto eventToWrite = std::make_shared<PlayerJoinRequest>();
-    eventToWrite->player = Player{.score = 200};
+    eventToWrite->player.nickname = L"Vovan";
+    eventToWrite->player.score = 200;
 
     os << eventToWrite.get();
 
@@ -100,8 +103,8 @@ void testPlayerJoined()
 {
     std::stringstream os;
     auto eventToWrite = std::make_shared<PlayerJoined>();
-    eventToWrite->player = Player{.score = -300};
-    eventToWrite->session = gameSessionTestObject();
+    eventToWrite->player.nickname = L"Vovan";
+    eventToWrite->player.score = 200;
 
     os << eventToWrite.get();
 
@@ -120,7 +123,7 @@ void testPlayerJoined()
 int main(int, char **)
 {
     return TEST_RUN(
-        testGameSessionReset,
+        testSessionSync,
         testPlayerJoinRequest,
         testPlayerJoined);
 }

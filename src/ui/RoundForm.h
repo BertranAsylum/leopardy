@@ -14,7 +14,8 @@ public:
 
 private:
     void reset();
-    void setWinner(const Player &player);
+    void updateQuestionPage();
+    void updateWinnerPage();
 
 private:
     GameController *m_gameController = nullptr;

@@ -17,29 +17,21 @@ void RoundForm::setup(GameController *gameController, Widget *parent)
     m_gameController = gameController;
     m_gameController->onEvent([this](const std::shared_ptr<GameEvent> &event)
     {
-        if (auto *e = event->as<GameSessionReset>()) {
+        if (auto *e = event->as<UiReset>()) {
             reset();
         }
         else if (auto *e = event->as<QuestionChosen>()) {
-            const auto round = m_gameController->gameSession()->state().currentRound;
-            const auto card = m_gameController->gameSession()->gameSet().rounds[round].categories[e->categoryNum].cards
-                [e->priceNum];
-
-            auto *questionCard = new QuestionCard(card);
-            questionCard->setId(L"QuestionCard");
-            questionCard->onMouseRelease([this](int, int)
-            {
-                auto playerIsRight = std::make_shared<PlayerIsRight>();
-                m_gameController->pushEvent(playerIsRight);
-            });
-            m_questionPage->clearChildren();
-            m_questionPage->addWidget(1, 2, 4, 5, questionCard);
-
+            updateQuestionPage();
             const auto questionPageNum = m_roundPager->pageCount() - 2;
             m_roundPager->switchTo(questionPageNum);
         }
-        else if (auto *e = event->as<PlayerIsRight>()) {
+        else if (event->as<PlayerIsRight>() || event->as<PlayerIsWrong>() || event->as<NextRound>()) {
             m_roundPager->switchTo(m_gameController->gameSession()->state().currentRound);
+        }
+        else if (auto *e = event->as<PlayerWin>()) {
+            updateWinnerPage();
+            const auto winnerPageNum = m_roundPager->pageCount() - 1;
+            m_roundPager->switchTo(winnerPageNum);
         }
     });
 
@@ -112,8 +104,13 @@ void RoundForm::reset()
     m_roundPager->addPage(m_questionPage);
     m_roundPager->addPage(winnerPage);
 
-    if (session->state().currentStage == GameSession::State::Stage::GameFinished) {
-        setWinner(session->winner());
+    if (session->state().currentStage == GameSession::State::Stage::ViewingQestion) {
+        updateQuestionPage();
+        const auto questionPageNum = m_roundPager->pageCount() - 2;
+        m_roundPager->switchTo(questionPageNum);
+    }
+    else if (session->state().currentStage == GameSession::State::Stage::GameFinished) {
+        updateWinnerPage();
         const auto winnerPageNum = m_roundPager->pageCount() - 1;
         m_roundPager->switchTo(winnerPageNum);
     }
@@ -122,8 +119,27 @@ void RoundForm::reset()
     }
 }
 
-void RoundForm::setWinner(const Player &player)
+void RoundForm::updateQuestionPage()
 {
-    m_winnerLabel->setText(player.nickname + L" win!");
+    const auto round = m_gameController->gameSession()->state().currentRound;
+    const auto categoryNum = m_gameController->gameSession()->state().questionCategoryNum;
+    const auto priceNum = m_gameController->gameSession()->state().questionPriceNum;
+
+    const auto card =
+        m_gameController->gameSession()->gameSet().rounds[round].categories[categoryNum].cards[priceNum];
+
+    auto *questionCard = new QuestionCard(card);
+    questionCard->setId(L"QuestionCard");
+    questionCard->onMouseRelease([this](int, int)
+    {
+        auto playerIsRight = std::make_shared<PlayerIsRight>();
+        m_gameController->pushEvent(playerIsRight);
+    });
+    m_questionPage->clearChildren();
+    m_questionPage->addWidget(1, 2, 4, 5, questionCard);
 }
 
+void RoundForm::updateWinnerPage()
+{
+    m_winnerLabel->setText(m_gameController->gameSession()->winner().nickname + L" win!");
+}

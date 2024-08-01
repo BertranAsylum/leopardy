@@ -13,8 +13,11 @@ void PlayerForm::setup(GameController *gameController, Widget *parent)
     m_gameController = gameController;
     m_gameController->onEvent([this](const std::shared_ptr<GameEvent> &event)
     {
-        if (auto *e = event->as<PlayerJoined>()) {
+        if (auto *e = event->as<UiReset>()) {
             reset();
+        }
+        else if (auto *e = event->as<PlayerJoined>()) {
+            updatePlayerGrid();
         }
     });
 
@@ -32,15 +35,18 @@ void PlayerForm::setup(GameController *gameController, Widget *parent)
 void PlayerForm::reset()
 {
     m_playerGrid->clearChildren();
+    updatePlayerGrid();
+}
 
-    const auto &players = m_gameController->gameSession()->players();
+void PlayerForm::updatePlayerGrid()
+{
     // TODO: Gentle handle players
+    const auto &players = m_gameController->gameSession()->players();
     assert("Game don't support more than 3 players" && players.size() <= 3);
 
-    int playerNum = 0;
-    for (const auto &player : players) {
-        auto *playerCard = new PlayerCard(player);
-        playerCard->setId(L"PlayerCard" + player.nickname);
-        m_playerGrid->addWidget(0, playerNum++, playerCard);
+    for (int i = m_playerGrid->childrenCount(); i < players.size(); ++i) {
+        auto *playerCard = new PlayerCard(players[i]);
+        playerCard->setId(L"PlayerCard" + players[i].nickname);
+        m_playerGrid->addWidget(0, i, playerCard);
     }
 }

@@ -39,6 +39,7 @@ public:
     Widget *parent() const;
     Widget *child(const std::wstring &id) const;
     std::vector<Widget*> children() const;
+    int childrenCount() const;
 
     Widget *nextSibling() const;
     Widget *previousSibling() const;

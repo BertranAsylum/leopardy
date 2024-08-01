@@ -5,6 +5,7 @@
 
 struct GameEvent {
     virtual ~GameEvent() = default;
+    virtual bool local() const = 0;
 
     template <typename E>
     const E *as() const
@@ -22,60 +23,85 @@ struct GameEvent {
     friend std::istream &operator>>(std::istream &s, GameEvent *&ep);
 };
 
-struct GameSessionReset : GameEvent {};
+struct UiReset : GameEvent {
+    bool local() const override { return true; }
+};
 
-struct GameSessionUpdated : GameEvent {
+struct GameSessionSync : GameEvent {
     GameSession session;
+    bool local() const override { return false; }
 };
 
 struct PlayerJoinRequest : GameEvent {
     Player player;
+    bool local() const override { return false; }
+};
+
+struct PlayerJoinRejected : GameEvent {
+    Player player;
+    bool local() const override { return false; }
 };
 
 struct PlayerJoined : GameEvent {
     Player player;
-    GameSession session;
+    bool local() const override { return false; }
 };
 
 struct ObserverJoinRequest : GameEvent {
     Observer observer;
+    bool local() const override { return false; }
 };
 
 struct ObserverJoined : GameEvent {
     Observer observer;
+    bool local() const override { return false; }
+};
+
+struct GameStarted : GameEvent {
+    bool local() const override { return false; }
 };
 
 struct PlayerChoosing : GameEvent {
     int playerNum = -1;
+    bool local() const override { return false; }
 };
 
 struct QuestionChosen : GameEvent {
     int categoryNum = -1;
     int priceNum = -1;
+    bool local() const override { return false; }
 };
 
 struct PlayerAnswerRequest : GameEvent {
     int playerNum = -1;
+    bool local() const override { return false; }
 };
 
 struct PlayerAnswering : GameEvent {
     int playerNum = -1;
+    bool local() const override { return false; }
 };
 
 struct PlayerTypingAnswer : GameEvent {
     std::wstring answer;
+    bool local() const override { return false; }
 };
 
 struct PlayerIsRight : GameEvent {
     int scoreIncrease = 0;
+    bool local() const override { return false; }
 };
 
 struct PlayerIsWrong : GameEvent {
     int scoreDecrease = 0;
+    bool local() const override { return false; }
 };
 
-struct NextRound : GameEvent {};
+struct NextRound : GameEvent {
+    bool local() const override { return false; }
+};
 
 struct PlayerWin : GameEvent {
     int playerNum = -1;
+    bool local() const override { return false; }
 };

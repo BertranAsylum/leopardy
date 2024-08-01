@@ -29,6 +29,7 @@ public:
 private:
     bool initNetworkChannel(const std::wstring &address);
     void onNetworkChannelMessage(const Network::Channel::Message &msg);
+    void onGameEvent(const std::shared_ptr<GameEvent> &event);
 
 private:
     MainForm m_mainForm;
