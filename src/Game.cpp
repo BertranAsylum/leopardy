@@ -20,7 +20,7 @@ static const std::wstring lobbyIsFullMessage =
 
 Game::Game(Widget *window)
 {
-    m_eventCallbacks.push_back([this](const std::shared_ptr<GameEvent> &event) { onGameEvent(event); });
+    m_eventCallbacks.emplace_back([this](const std::shared_ptr<GameEvent> &event) { onGameEvent(event); });
     m_mainForm.setup(this, window);
 }
 
@@ -99,7 +99,8 @@ void Game::pushEvent(const std::shared_ptr<GameEvent> &event)
             return;
         }
     }
-    for (const auto &c : m_eventCallbacks) {
+    auto callbacks = m_eventCallbacks;
+    for (auto &c : callbacks) {
         c(event);
     }
 }
@@ -117,13 +118,11 @@ bool Game::initNetworkChannel(const std::wstring &address)
     }
     m_networkChannel.onMessage([this](const Network::Channel::Message &msg)
     {
-        std::lock_guard lock(Window::mutex());
-        onNetworkChannelMessage(msg);
+        Application::push([this, msg]() { onNetworkChannelMessage(msg); });
     });
     m_networkChannel.onError([this](const std::wstring &message)
     {
-        std::lock_guard lock(Window::mutex());
-        raiseError(networkConnectionErrorMessage + L": " + message);
+        Application::push([this, message]() { raiseError(networkConnectionErrorMessage + L": " + message); });
     });
     return true;
 }
@@ -142,7 +141,8 @@ void Game::onNetworkChannelMessage(const Network::Channel::Message &msg)
     }
 
     const std::shared_ptr<GameEvent> eventShared(event);
-    for (const auto &c : m_eventCallbacks) {
+    auto callbacks = m_eventCallbacks;
+    for (auto &c : callbacks) {
         c(eventShared);
     }
 }
