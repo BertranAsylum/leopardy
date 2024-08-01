@@ -24,6 +24,7 @@ CategoryCard::CategoryCard(const std::wstring &name, const GameSet::Category &ca
     for (auto &card : category.cards) {
         auto *priceButton = new TextButton(std::to_wstring(card.price));
         priceButton->setId(L"PriceButton" + std::to_wstring(num));
+        priceButton->setVisible(!card.used);
         gridLayout->addWidget(num + 2, 0, priceButton);
         m_priceButtons[card.price] = priceButton;
         ++num;

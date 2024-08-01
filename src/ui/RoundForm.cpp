@@ -94,6 +94,17 @@ void RoundForm::reset()
                         questionChoosen->priceNum = priceNum;
                         m_gameController->pushEvent(questionChoosen);
                     });
+                    // TODO: Move to setup()
+                    m_gameController->onEvent(
+                        [categoryNum, priceNum, priceButton](const std::shared_ptr<GameEvent> &event)
+                        {
+                            if (auto *e = event->as<QuestionChosen>()) {
+                                if (e->categoryNum == categoryNum
+                                    && e->priceNum == priceNum) {
+                                    priceButton->hide();
+                                }
+                            }
+                        });
                     ++priceNum;
                 }
                 ++categoryNum;
