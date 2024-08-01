@@ -7,7 +7,7 @@
 class TextInput : public Widget {
 public:
     ~TextInput() override = default;
-    explicit TextInput(const Geometry &geometry);
+    explicit TextInput();
 
     void setPlaceholder(const std::wstring &text);
     void setCharFilter(const std::wstring &regex);

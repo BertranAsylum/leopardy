@@ -31,13 +31,13 @@ void MenuForm::setup(GameStarter *gameStarter, Widget *parent)
 
     const auto opts = gameStarter->lastOptions();
 
-    auto *leaderNicknameInput = new TextInput({});
+    auto *leaderNicknameInput = new TextInput();
     leaderNicknameInput->setId(L"LeaderNicknameTextInput");
     leaderNicknameInput->setPlaceholder(L"Nickname");
     leaderNicknameInput->setMaxLength(50);
     leaderNicknameInput->setText(opts.nickname);
 
-    auto *createdServerAddressInput = new TextInput({});
+    auto *createdServerAddressInput = new TextInput();
     createdServerAddressInput->setId(L"CreateServerAddressTextInput");
     createdServerAddressInput->setPlaceholder(L"Server address (host:port)");
     createdServerAddressInput->setMaxLength(50);
@@ -60,13 +60,13 @@ void MenuForm::setup(GameStarter *gameStarter, Widget *parent)
     createGamePage->addWidget(5, 0, backFromCreateGameButton);
 
 
-    auto *playerNicknameInput = new TextInput({});
+    auto *playerNicknameInput = new TextInput();
     playerNicknameInput->setId(L"PlayerNicknameTextInput");
     playerNicknameInput->setPlaceholder(L"Nickname");
     playerNicknameInput->setMaxLength(50);
     playerNicknameInput->setText(opts.nickname);
 
-    auto *joinedServerAddressInput = new TextInput({});
+    auto *joinedServerAddressInput = new TextInput();
     joinedServerAddressInput->setId(L"JoinServerAddressTextInput");
     joinedServerAddressInput->setPlaceholder(L"Server address (host:port)");
     joinedServerAddressInput->setMaxLength(50);

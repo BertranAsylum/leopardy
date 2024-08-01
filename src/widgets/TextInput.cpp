@@ -19,10 +19,8 @@ bool isCursorVisible()
     return visible;
 }
 
-TextInput::TextInput(const Geometry &geometry)
+TextInput::TextInput()
 {
-    setGeometry(geometry);
-
     m_normalStyle.setStrokeWidth(1.0f);
     m_normalStyle.setStrokeColor({0.2f, 0.2f, 0.2f});
     m_normalStyle.setFillColor({1.0f, 1.0f, 1.0f});
