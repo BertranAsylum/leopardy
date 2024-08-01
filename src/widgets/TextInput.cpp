@@ -57,6 +57,11 @@ std::wstring TextInput::text() const
     return m_text;
 }
 
+void TextInput::onTextChanged(const TextChangedCallback &callback)
+{
+    m_textChangedCallback = callback;
+}
+
 void TextInput::onPaint(Canvas *canvas)
 {
     D2D1_RECT_F bounding = D2D1::RectF(
@@ -102,6 +107,9 @@ void TextInput::onKeyboardInput(uint16_t keyCode, uint16_t scanCode)
                 if (!m_text.empty()) {
                     m_text.resize(m_text.size() - 1);
                     m_cursor--;
+                    if (m_textChangedCallback) {
+                        m_textChangedCallback(m_text);
+                    }
                 }
                 break;
             default:
@@ -117,6 +125,9 @@ void TextInput::onCharInput(wchar_t character)
         if (!limitReached() && charAllowed(character)) {
             m_text += character;
             m_cursor++;
+            if (m_textChangedCallback) {
+                m_textChangedCallback(m_text);
+            }
         }
     }
     Widget::onCharInput(character);

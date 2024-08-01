@@ -6,6 +6,8 @@
 
 class TextInput : public Widget {
 public:
+    using TextChangedCallback = std::function<void(const std::wstring &text)>;
+
     ~TextInput() override = default;
     explicit TextInput();
 
@@ -14,6 +16,8 @@ public:
     void setMaxLength(int length);
     void setText(const std::wstring &text);
     std::wstring text() const;
+
+    void onTextChanged(const TextChangedCallback &callback);
 
 protected:
     void onPaint(Canvas *canvas) override;
@@ -34,4 +38,6 @@ private:
     std::wstring m_charRegex;
     int m_maxLength = 0;
     int m_cursor = 0;
+
+    TextChangedCallback m_textChangedCallback;
 };
