@@ -47,6 +47,11 @@ void TextInput::setMaxLength(int length)
     m_maxLength = length;
 }
 
+void TextInput::clearText()
+{
+    m_text.clear();
+}
+
 void TextInput::setText(const std::wstring &text)
 {
     m_text = text;

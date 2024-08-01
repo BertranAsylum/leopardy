@@ -14,6 +14,7 @@ public:
     void setPlaceholder(const std::wstring &text);
     void setCharFilter(const std::wstring &regex);
     void setMaxLength(int length);
+    void clearText();
     void setText(const std::wstring &text);
     std::wstring text() const;
 
