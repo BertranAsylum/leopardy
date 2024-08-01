@@ -20,12 +20,16 @@ void RoundForm::setup(GameController *gameController, Widget *parent)
         if (auto *e = event->as<UiReset>()) {
             reset();
         }
+        else if (event->as<PlayerChoosing>()) {
+            updateRoundPages();
+        }
         else if (auto *e = event->as<QuestionChosen>()) {
             updateQuestionPage();
             const auto questionPageNum = m_roundPager->pageCount() - 2;
             m_roundPager->switchTo(questionPageNum);
         }
         else if (event->as<PlayerIsRight>() || event->as<PlayerIsWrong>() || event->as<NextRound>()) {
+            updateRoundPages();
             m_roundPager->switchTo(m_gameController->gameSession()->state().currentRound);
         }
         else if (auto *e = event->as<PlayerWin>()) {
@@ -114,6 +118,7 @@ void RoundForm::reset()
     }
     m_roundPager->addPage(m_questionPage);
     m_roundPager->addPage(winnerPage);
+    updateRoundPages();
 
     if (session->state().currentStage == GameSession::State::Stage::ViewingQestion) {
         updateQuestionPage();
@@ -130,6 +135,22 @@ void RoundForm::reset()
     }
 }
 
+void RoundForm::updateRoundPages()
+{
+    bool enable =
+        m_gameController->gameSession()->state().currentStage == GameSession::State::Stage::ChoosingQuestion
+        && (m_gameController->thisParticipant()->role() == Participant::Role::Leader
+            || m_gameController->thisParticipant()->role() == Participant::Role::Player)
+        && m_gameController->gameSession()->state().playerNum == m_gameController->gameSession()->thisPlayerNum();
+
+    const auto &rounds = m_roundPager->children();
+    for (int i = 0; i < rounds.size() - 2; ++i) {
+        for (const auto &c : rounds[i]->children()) {
+            c->setEnabled(enable);
+        }
+    }
+}
+
 void RoundForm::updateQuestionPage()
 {
     const auto round = m_gameController->gameSession()->state().currentRound;
@@ -141,11 +162,7 @@ void RoundForm::updateQuestionPage()
 
     auto *questionCard = new QuestionCard(card);
     questionCard->setId(L"QuestionCard");
-    questionCard->onMouseRelease([this](int, int)
-    {
-        auto playerIsRight = std::make_shared<PlayerIsRight>();
-        m_gameController->pushEvent(playerIsRight);
-    });
+
     m_questionPage->clearChildren();
     m_questionPage->addWidget(1, 2, 4, 5, questionCard);
 }

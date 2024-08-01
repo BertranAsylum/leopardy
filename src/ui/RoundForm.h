@@ -14,6 +14,7 @@ public:
 
 private:
     void reset();
+    void updateRoundPages();
     void updateQuestionPage();
     void updateWinnerPage();
 
