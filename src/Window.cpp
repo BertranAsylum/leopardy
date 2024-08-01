@@ -5,9 +5,6 @@
 #include <windowsx.h>
 #include <cwctype>
 
-// TODO: Refactor, add global event loop
-static std::mutex guiMutex;
-
 Window::~Window()
 {}
 
@@ -27,27 +24,17 @@ void Window::show(int cmd) const
     ShowWindow(m_handle, cmd);
 }
 
-int Window::exec()
+void Window::loop()
 {
-    m_running = true;
-    while (m_running) {
-        std::lock_guard lock(guiMutex);
-        if (m_timer.elapsed() >= m_frameDuration) {
-            onPaint(m_canvas.get());
-            m_timer.reset();
-        }
-        MSG msg;
-        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+    if (m_timer.elapsed() >= m_frameDuration) {
+        onPaint(m_canvas.get());
+        m_timer.reset();
     }
-    return 0;
-}
-
-std::mutex &Window::mutex()
-{
-    return guiMutex;
+    MSG msg;
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
 }
 
 void Window::onPaint(Canvas *canvas)
@@ -178,7 +165,7 @@ LRESULT CALLBACK Window::onEvent(HWND handle, UINT message, WPARAM wParam, LPARA
             }
 
             case WM_DESTROY:
-                window->m_running = false;
+                terminate();
                 PostQuitMessage(0);
                 return 0;
         }

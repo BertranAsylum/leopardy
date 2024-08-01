@@ -1,14 +1,17 @@
 #pragma once
 
-#include "widgets/Widget.h"
+#include "Application.h"
 #include "utils/Timer.h"
+#include "widgets/Widget.h"
 
 #include <Windows.h>
 #include <string>
 #include <memory>
 #include <mutex>
 
-class Window : public Widget {
+class Widget;
+
+class Window : public Application, public Widget {
     friend class Canvas;
 
 public:
@@ -16,11 +19,9 @@ public:
     Window(int width, int height, int frameRate, const std::wstring &title);
 
     void show(int cmd = SW_SHOWNORMAL) const;
-    int exec();
-
-    static std::mutex &mutex();
 
 protected:
+    void loop() override;
     void onPaint(Canvas *canvas) override;
 
 private:
@@ -31,7 +32,6 @@ private:
 
 private:
     HWND m_handle = 0;
-    bool m_running = false;
     std::wstring m_title;
 
     Timer m_timer;
