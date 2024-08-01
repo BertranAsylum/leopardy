@@ -4,7 +4,7 @@
 #include <fstream>
 
 GameOptionsLoader::GameOptionsLoader() :
-    m_path("jeopardy.cfg") {}
+    m_path("leopardy.cfg") {}
 
 GameOptionsLoader::GameOptionsLoader(const std::string &path) :
     m_path(path) {}
