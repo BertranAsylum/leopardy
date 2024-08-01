@@ -11,6 +11,8 @@ public:
 private:
     void reset();
     void updatePlayerGrid();
+    void togglePlayerGrid(bool enable);
+    void updatePlayersScore();
 
 private:
     GameController *m_gameController = nullptr;
