@@ -182,15 +182,31 @@ void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
     }
     else if (auto *e = event->as<PlayerJoined>()) {
         m_gameSession.addPlayer(e->player);
+        if (m_thisParticipant->role() == Participant::Role::Player
+            && m_thisParticipant->nickname == e->player.nickname) {
+            m_gameSession.setThisPlayerNum(m_gameSession.players().size() - 1);
+        }
     }
     else if (auto *e = event->as<ObserverJoined>()) {
         m_gameSession.addObserver(e->observer);
+    }
+    else if (auto *e = event->as<GameStarted>()) {
+        m_gameSession.start();
     }
     else if (auto *e = event->as<PlayerChoosing>()) {
         m_gameSession.choosingQuestion(e->playerNum);
     }
     else if (auto *e = event->as<QuestionChosen>()) {
         m_gameSession.viewingQuestion(e->categoryNum, e->priceNum);
+    }
+    else if (auto *e = event->as<PlayerAnswerRequest>()) {
+        if (m_thisParticipant->role() == Participant::Role::Leader) {
+            if (m_gameSession.state().currentStage != GameSession::State::Stage::PlayerAnswering) {
+                auto playerAnswering = std::make_shared<PlayerAnswering>();
+                playerAnswering->playerNum = e->playerNum;
+                pushEvent(playerAnswering);
+            }
+        }
     }
     else if (auto *e = event->as<PlayerAnswering>()) {
         m_gameSession.playerAnswering(e->playerNum);
