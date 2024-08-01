@@ -117,6 +117,9 @@ bool Widget::mouseTransparent() const
 void Widget::setEnabled(bool enabled)
 {
     m_enabled = enabled;
+    for (auto &c : m_children) {
+        c->setEnabled(enabled);
+    }
 }
 
 void Widget::enable()
@@ -142,6 +145,9 @@ bool Widget::disabled() const
 void Widget::setVisible(bool visible)
 {
     m_visible = visible;
+    for (auto &c : m_children) {
+        c->setVisible(visible);
+    }
 }
 
 void Widget::show()
