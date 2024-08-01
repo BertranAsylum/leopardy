@@ -11,5 +11,6 @@ protected:
     void onPaint(Canvas *canvas) override;
 
 private:
-    ShapeStyle m_style;
+    ShapeStyle m_normalStyle;
+    ShapeStyle m_hoveredStyle;
 };

@@ -162,6 +162,7 @@ void RoundForm::updateQuestionPage()
 
     auto *questionCard = new QuestionCard(card);
     questionCard->setId(L"QuestionCard");
+    questionCard->disable();
 
     m_questionPage->clearChildren();
     m_questionPage->addWidget(1, 2, 4, 5, questionCard);

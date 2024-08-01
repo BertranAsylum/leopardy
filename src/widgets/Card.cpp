@@ -3,9 +3,13 @@
 
 Card::Card()
 {
-    m_style.setStrokeWidth(1.0f);
-    m_style.setStrokeColor({0.1f, 0.1f, 0.1f});
-    m_style.setFillColor({0.3f, 0.3f, 0.3f});
+    m_normalStyle.setStrokeWidth(1.0f);
+    m_normalStyle.setStrokeColor({0.1f, 0.1f, 0.1f});
+    m_normalStyle.setFillColor({0.3f, 0.3f, 0.3f});
+
+    m_hoveredStyle.setStrokeWidth(1.0f);
+    m_hoveredStyle.setStrokeColor({0.6f, 0.6f, 0.6f});
+    m_hoveredStyle.setFillColor({0.3f, 0.3f, 0.3f});
 }
 
 void Card::onPaint(Canvas *canvas)
@@ -16,10 +20,14 @@ void Card::onPaint(Canvas *canvas)
         float(geometry().x + geometry().width),
         float(geometry().y + geometry().height));
 
+    auto &style = hovered()
+                      ? m_hoveredStyle
+                      : m_normalStyle;
+
     canvas->drawRoundedRect(D2D1::RoundedRect(
-        bounding,
-        8.0f, 8.0f),
-        m_style);
+                                bounding,
+                                8.0f, 8.0f),
+                            style);
 
     Widget::onPaint(canvas);
 }
