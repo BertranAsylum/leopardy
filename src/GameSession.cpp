@@ -67,14 +67,9 @@ void GameSession::setThisPlayerNum(int playerNum)
     m_thisPlayerNum = playerNum;
 }
 
-Player GameSession::thisPlayer() const
+int GameSession::thisPlayerNum() const
 {
-    return m_players.at(m_thisPlayerNum);
-}
-
-bool GameSession::amIPlayer() const
-{
-    return (m_thisPlayerNum >= 0);
+    return m_thisPlayerNum;
 }
 
 void GameSession::start()
@@ -195,6 +190,16 @@ void GameSession::playerWin(int playerNum)
 GameSession::State GameSession::state() const
 {
     return m_state;
+}
+
+GameSet::Card GameSession::card() const
+{
+    assert(m_state.currentRound >= 0);
+    assert(m_state.questionCategoryNum >= 0);
+    assert(m_state.questionPriceNum >= 0);
+
+    return
+        m_gameSet.rounds[m_state.currentRound].categories[m_state.questionCategoryNum].cards[m_state.questionPriceNum];
 }
 
 Player GameSession::winner() const

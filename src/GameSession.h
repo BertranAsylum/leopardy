@@ -45,8 +45,7 @@ public:
     std::vector<Observer> observers() const;
 
     void setThisPlayerNum(int playerNum);
-    Player thisPlayer() const;
-    bool amIPlayer() const;
+    int thisPlayerNum() const;
 
     void start();
     void choosingQuestion(int playerNum);
@@ -58,6 +57,7 @@ public:
     void playerWin(int playerNum);
 
     State state() const;
+    GameSet::Card card() const;
     Player winner() const;
     int deduceWinner() const;
 
