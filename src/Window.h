@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Application.h"
-#include "utils/Timer.h"
+#include "utils/ElapsedTimer.h"
 #include "widgets/Widget.h"
 
 #include <Windows.h>
@@ -34,7 +34,7 @@ private:
     HWND m_handle = 0;
     std::wstring m_title;
 
-    Timer m_timer;
+    ElapsedTimer m_timer;
     std::chrono::duration<double, std::milli> m_frameDuration;
     std::shared_ptr<Canvas> m_canvas;
 };

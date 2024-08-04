@@ -2,13 +2,13 @@
 #include "Style.h"
 
 #include <direct/Canvas.h>
-#include <utils/Timer.h>
+#include <utils/ElapsedTimer.h>
 
 #include <regex>
 
 bool isCursorVisible()
 {
-    static Timer timer;
+    static ElapsedTimer timer;
     static bool visible = true;
     static constexpr auto cursorBlinkInterval = 500ms;
 
