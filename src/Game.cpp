@@ -153,7 +153,6 @@ void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
         if (!m_gameSession.initialized()) {
             m_gameSession = e->session;
             m_mainForm.showGame();
-            pushEvent(std::make_shared<UiReset>());
         }
     }
     else if (auto *e = event->as<PlayerJoinRequest>()) {
@@ -181,10 +180,11 @@ void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
         }
     }
     else if (auto *e = event->as<PlayerJoined>()) {
-        m_gameSession.addPlayer(e->player);
+        const auto playerNum = m_gameSession.addPlayer(e->player);
         if (m_thisParticipant->role() == Participant::Role::Player
             && m_thisParticipant->nickname == e->player.nickname) {
-            m_gameSession.setThisPlayerNum(m_gameSession.players().size() - 1);
+            m_gameSession.setThisPlayerNum(playerNum);
+            pushEvent(std::make_shared<UiReset>());
         }
     }
     else if (auto *e = event->as<ObserverJoined>()) {

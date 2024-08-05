@@ -36,10 +36,11 @@ public:
     GameSet gameSet() const;
     Leader leader() const;
 
-    void addPlayer(const Player &player);
+    int addPlayer(const Player &player);
     Player player(int playerNum) const;
     std::vector<Player> players() const;
     bool hasPlayer(const Player &player) const;
+    int playerNum(const Player &player) const;
 
     void addObserver(const Observer &observer);
     std::vector<Observer> observers() const;

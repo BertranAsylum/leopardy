@@ -23,11 +23,14 @@ Leader GameSession::leader() const
     return m_leader;
 }
 
-void GameSession::addPlayer(const Player &player)
+int GameSession::addPlayer(const Player &player)
 {
-    if (!hasPlayer(player)) {
-        m_players.push_back(player);
+    const auto num = playerNum(player);
+    if (num < m_players.size()) {
+        return num;
     }
+    m_players.push_back(player);
+    return num;
 }
 
 Player GameSession::player(int playerNum) const
@@ -45,10 +48,15 @@ std::vector<Player> GameSession::players() const
 
 bool GameSession::hasPlayer(const Player &player) const
 {
+    return playerNum(player) < m_players.size();
+}
+
+int GameSession::playerNum(const Player &player) const
+{
     return std::find_if(m_players.begin(), m_players.end(), [player](const Player &p)
     {
         return p.nickname == player.nickname;
-    }) != m_players.end();
+    }) - m_players.begin();
 }
 
 void GameSession::addObserver(const Observer &observer)
