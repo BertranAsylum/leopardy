@@ -6,15 +6,15 @@
 TextButton::TextButton(const std::wstring &text) :
     m_text(text)
 {
-    m_normalStyle.setStrokeWidth(1.0f);
+    m_normalStyle.setStrokeWidth(Style::borderWidth());
     m_normalStyle.setStrokeColor({0.1f, 0.1f, 0.1f});
     m_normalStyle.setFillColor({0.25f, 0.25f, 0.25f});
 
-    m_hoveredStyle.setStrokeWidth(1.0f);
+    m_hoveredStyle.setStrokeWidth(Style::borderWidth());
     m_hoveredStyle.setStrokeColor({0.1f, 0.1f, 0.1f});
     m_hoveredStyle.setFillColor({0.3f, 0.3f, 0.3f});
 
-    m_pressedStyle.setStrokeWidth(1.0f);
+    m_pressedStyle.setStrokeWidth(Style::borderWidth());
     m_pressedStyle.setStrokeColor({0.1f, 0.1f, 0.1f});
     m_pressedStyle.setFillColor({0.15f, 0.15f, 0.15f});
 

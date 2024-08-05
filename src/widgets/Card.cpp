@@ -1,13 +1,14 @@
 #include "Card.h"
+#include "Style.h"
 #include "direct/Canvas.h"
 
 Card::Card()
 {
-    m_normalStyle.setStrokeWidth(1.0f);
+    m_normalStyle.setStrokeWidth(Style::borderWidth());
     m_normalStyle.setStrokeColor({0.1f, 0.1f, 0.1f});
     m_normalStyle.setFillColor({0.3f, 0.3f, 0.3f});
 
-    m_hoveredStyle.setStrokeWidth(1.0f);
+    m_hoveredStyle.setStrokeWidth(Style::borderWidth());
     m_hoveredStyle.setStrokeColor({0.6f, 0.6f, 0.6f});
     m_hoveredStyle.setFillColor({0.3f, 0.3f, 0.3f});
 }

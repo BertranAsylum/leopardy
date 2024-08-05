@@ -28,4 +28,5 @@ public:
     static Font font(FontSize size = FontSize::Default);
     static D2D1::ColorF color(const D2D1::ColorF &color, ColorShift shift);
     static D2D1::ColorF color(ColorTag tag);
+    static float borderWidth();
 };

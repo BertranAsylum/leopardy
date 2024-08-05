@@ -8,7 +8,7 @@ Font Style::font(FontSize size)
     switch (size) {
         case FontSize::Tiny:
             f.setSize(6);
-        break;
+            break;
         case FontSize::Small:
             f.setSize(12);
             break;
@@ -60,4 +60,9 @@ D2D1::ColorF Style::color(ColorTag tag)
             return {0.2f, 0.2f, 0.2f};
     }
     return {0.0f, 0.0f, 0.0f};
+}
+
+float Style::borderWidth()
+{
+    return 1.0f;
 }

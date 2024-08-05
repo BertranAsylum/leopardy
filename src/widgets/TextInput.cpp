@@ -21,11 +21,11 @@ bool isCursorVisible()
 
 TextInput::TextInput()
 {
-    m_normalStyle.setStrokeWidth(1.0f);
+    m_normalStyle.setStrokeWidth(Style::borderWidth());
     m_normalStyle.setStrokeColor({0.2f, 0.2f, 0.2f});
     m_normalStyle.setFillColor({1.0f, 1.0f, 1.0f});
 
-    m_focusedStyle.setStrokeWidth(4.0f);
+    m_focusedStyle.setStrokeWidth(Style::borderWidth() * 4);
     m_focusedStyle.setStrokeColor({0.8f, 0.5f, 0.4f});
     m_focusedStyle.setFillColor({1.0f, 1.0f, 1.0f});
 
