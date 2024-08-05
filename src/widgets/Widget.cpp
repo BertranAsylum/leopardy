@@ -119,6 +119,9 @@ void Widget::setEnabled(bool enabled)
     if (!(m_enabled = enabled)) {
         m_hovered = false;
         m_pressed = false;
+        if (focusedWidget == this) {
+            focusedWidget = nullptr;
+        }
     }
     for (auto &c : m_children) {
         c->setEnabled(enabled);
