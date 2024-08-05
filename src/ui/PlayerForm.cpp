@@ -16,28 +16,17 @@ void PlayerForm::setup(GameController *gameController, Widget *parent)
         if (auto *e = event->as<UiReset>()) {
             reset();
         }
-        else if (auto *e = event->as<PlayerJoined>()) {
-            updatePlayerGrid();
-        }
-        else if (event->as<GameStarted>()
-            || event->as<NextRound>()) {
-            togglePlayerGrid(true);
-        }
         else if (event->as<PlayerChoosing>()
             || event->as<QuestionChosen>()
             || event->as<PlayerAnswering>()) {
-            togglePlayerGrid(false);
             updatePlayersActiveSign();
         }
         else if (event->as<PlayerIsRight>()
             || event->as<PlayerIsWrong>()) {
-            togglePlayerGrid(true);
             updatePlayersActiveSign();
             updatePlayersScore();
         }
-        else {
-            togglePlayerGrid(false);
-        }
+        updatePlayerGrid();
     });
 
     m_playerGrid = new GridLayout(1, 3);
@@ -57,9 +46,6 @@ void PlayerForm::reset()
     updatePlayerGrid();
     updatePlayersActiveSign();
     updatePlayersScore();
-
-    const auto stage = m_gameController->gameSession()->state().currentStage;
-    togglePlayerGrid(stage == GameSession::State::Stage::SelectingPlayer);
 }
 
 void PlayerForm::updatePlayerGrid()
@@ -71,7 +57,6 @@ void PlayerForm::updatePlayerGrid()
     for (int i = m_playerGrid->childrenCount(); i < players.size(); ++i) {
         auto *playerCard = new PlayerCard(players[i]);
         playerCard->setId(L"PlayerCard" + players[i].nickname);
-        playerCard->disable();
         playerCard->onMouseRelease([this, i](int, int)
         {
             auto playerChoosing = std::make_shared<PlayerChoosing>();
@@ -80,14 +65,17 @@ void PlayerForm::updatePlayerGrid()
         });
         m_playerGrid->addWidget(0, i, playerCard);
     }
+
+    const auto enable =
+        m_gameController->thisParticipant()->role() == Participant::Role::Leader
+        && m_gameController->gameSession()->state().currentStage == GameSession::State::SelectingPlayer;
+    togglePlayerGrid(enable);
 }
 
 void PlayerForm::togglePlayerGrid(bool enable)
 {
-    if (m_gameController->thisParticipant()->role() == Participant::Role::Leader) {
-        for (auto *c : m_playerGrid->children()) {
-            c->setEnabled(enable);
-        }
+    for (auto *c : m_playerGrid->children()) {
+        c->setEnabled(enable);
     }
 }
 

@@ -190,7 +190,21 @@ void BottombarForm::resetForPlayer()
     m_pager->addPage(tryAnswerPage);
     m_pager->addPage(typeAnswerPage);
 
-    tryAnswerButton->onMouseRelease([this, tryAnswerButton](int, int)
+    switch (m_gameController->gameSession()->state().currentStage) {
+        case GameSession::State::ViewingQestion:
+            m_pager->switchTo(static_cast<int>(PlayerPage::TryAnswer));
+            break;
+        case GameSession::State::PlayerAnswering:
+            if (m_gameController->gameSession()->state().playerNum
+                == m_gameController->gameSession()->thisPlayerNum()) {
+                m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
+            }
+            break;
+        default:
+            break;
+    }
+
+    m_tryAnswerButton->onMouseRelease([this](int, int)
     {
         auto answerRequest = std::make_shared<PlayerAnswerRequest>();
         answerRequest->playerNum = m_gameController->gameSession()->thisPlayerNum();
@@ -211,7 +225,9 @@ void BottombarForm::setupForLeader()
     m_gameController->onEvent([this](const std::shared_ptr<GameEvent> &event)
     {
         if (event->as<PlayerJoined>()) {
-            m_pager->switchTo(static_cast<int>(LeaderPage::StartGame));
+            if (m_gameController->gameSession()->state().currentStage == GameSession::State::Lobby) {
+                m_pager->switchTo(static_cast<int>(LeaderPage::StartGame));
+            }
         }
         else if (event->as<GameStarted>()
             || event->as<PlayerChoosing>()
