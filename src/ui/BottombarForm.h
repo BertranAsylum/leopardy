@@ -5,8 +5,8 @@
 class Widget;
 class Pager;
 class Toolbar;
-class TextButton;
-class TextInput;
+class TimeredTextButton;
+class TimeredTextInput;
 class GameController;
 
 class BottombarForm {
@@ -26,5 +26,6 @@ private:
     GameController *m_gameController = nullptr;
     Pager *m_pager = nullptr;
 
-    TextInput *m_answerInput = nullptr;
+    TimeredTextButton *m_tryAnswerButton = nullptr;
+    TimeredTextInput *m_answerInput = nullptr;
 };

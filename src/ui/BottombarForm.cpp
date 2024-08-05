@@ -1,8 +1,8 @@
 #include "BottombarForm.h"
 
 #include "widgets/FrameLayout.h"
-#include "widgets/TextButton.h"
-#include "widgets/TextInput.h"
+#include "widgets/TimeredTextButton.h"
+#include "widgets/TimeredTextInput.h"
 #include "widgets/Toolbar.h"
 #include "widgets/Pager.h"
 #include "interfaces/GameController.h"
@@ -95,7 +95,7 @@ void BottombarForm::resetForLeader()
     noButton->setId(L"NoButton");
     auto *yesButton = new TextButton(L"Yes");
     yesButton->setId(L"YesButton");
-    m_answerInput = new TextInput;
+    m_answerInput = new TimeredTextInput;
     m_answerInput->setId(L"AnswerText");
     m_answerInput->setPlaceholder(L"Player's answer");
     m_answerInput->disable();
@@ -163,16 +163,16 @@ void BottombarForm::resetForPlayer()
     blankPage->adjustWidgetSize(true);
     blankPage->setId(L"BlankPage");
 
-    auto *tryAnswerButton = new TextButton(L"Try to answer");
-    tryAnswerButton->setId(L"TryAnswerButton");
+    m_tryAnswerButton = new TimeredTextButton(L"Try to answer");
+    m_tryAnswerButton->setId(L"TryAnswerButton");
     auto *tryAnswerBar = new Toolbar(1);
     tryAnswerBar->setId(L"TryAnswerToolbar");
-    tryAnswerBar->setWidget(0, tryAnswerButton);
+    tryAnswerBar->setWidget(0, m_tryAnswerButton);
     auto *tryAnswerPage = new FrameLayout(tryAnswerBar);
     tryAnswerPage->adjustWidgetSize(true);
     tryAnswerPage->setId(L"TryAnswerPage");
 
-    m_answerInput = new TextInput;
+    m_answerInput = new TimeredTextInput;
     m_answerInput->setId(L"TypeAnswerInput");
     m_answerInput->setPlaceholder(L"Type your answer");
 
@@ -195,7 +195,7 @@ void BottombarForm::resetForPlayer()
         auto answerRequest = std::make_shared<PlayerAnswerRequest>();
         answerRequest->playerNum = m_gameController->gameSession()->thisPlayerNum();
         m_gameController->pushEvent(answerRequest);
-        tryAnswerButton->disable();
+        m_tryAnswerButton->disable();
     });
 
     m_answerInput->onTextChanged([this](const std::wstring &text)
@@ -261,14 +261,14 @@ void BottombarForm::setupForPlayer()
             m_pager->switchTo(static_cast<int>(PlayerPage::Blank));
         }
         else if (event->as<QuestionChosen>()) {
+            m_tryAnswerButton->arm(3s);
             m_pager->switchTo(static_cast<int>(PlayerPage::TryAnswer));
-            m_pager->enable();
         }
         else if (auto *e = event->as<PlayerAnswering>()) {
             if (e->playerNum == m_gameController->gameSession()->thisPlayerNum()) {
-                m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
-                m_pager->enable();
                 m_answerInput->clearText();
+                m_answerInput->arm(10s);
+                m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
             }
             else {
                 m_pager->switchTo(static_cast<int>(PlayerPage::Blank));
