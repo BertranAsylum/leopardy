@@ -139,8 +139,7 @@ void RoundForm::updateRoundPages()
 {
     bool enable =
         m_gameController->gameSession()->state().currentStage == GameSession::State::Stage::ChoosingQuestion
-        && (m_gameController->thisParticipant()->role() == Participant::Role::Leader
-            || m_gameController->thisParticipant()->role() == Participant::Role::Player)
+        && m_gameController->thisParticipant()->role() == Participant::Role::Player
         && m_gameController->gameSession()->state().playerNum == m_gameController->gameSession()->thisPlayerNum();
 
     const auto &rounds = m_roundPager->children();
