@@ -1,7 +1,6 @@
 #include "ElapsedTimer.h"
 
-ElapsedTimer::~ElapsedTimer()
-{}
+ElapsedTimer::~ElapsedTimer() = default;
 
 ElapsedTimer::ElapsedTimer()
 {
