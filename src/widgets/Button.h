@@ -4,8 +4,6 @@
 
 class Button : public Widget {
 public:
-    ~Button() override = default;
-
     void setCheckable(bool value);
     bool checkable() const;
     bool checked() const;

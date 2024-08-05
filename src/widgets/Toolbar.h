@@ -4,9 +4,9 @@
 #include "direct/ShapeStyle.h"
 
 class GridLayout;
+
 class Toolbar : public Widget {
 public:
-    ~Toolbar() override = default;
     Toolbar(int size);
 
     void setWidget(int index, Widget *widget);

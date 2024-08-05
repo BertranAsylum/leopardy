@@ -6,7 +6,6 @@
 
 class TextButton : public Button {
 public:
-    ~TextButton() override = default;
     explicit TextButton(const std::wstring &text);
 
 protected:

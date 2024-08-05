@@ -6,7 +6,6 @@
 
 class TextLabel : public Widget {
 public:
-    ~TextLabel() override = default;
     explicit TextLabel(const std::wstring &text = L"");
 
     void setText(const std::wstring &text);

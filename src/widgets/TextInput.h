@@ -8,7 +8,6 @@ class TextInput : public Widget {
 public:
     using TextChangedCallback = std::function<void(const std::wstring &text)>;
 
-    ~TextInput() override = default;
     explicit TextInput();
 
     void setPlaceholder(const std::wstring &text);
