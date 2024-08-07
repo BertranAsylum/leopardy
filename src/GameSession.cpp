@@ -141,10 +141,6 @@ void GameSession::increasePlayerScore(int value)
     else {
         m_state.currentStage = State::Stage::RoundFinished;
     }
-
-    m_state.questionCategoryNum = -1;
-    m_state.questionPriceNum = -1;
-    m_state.playerNum = -1;
 }
 
 void GameSession::decreasePlayerScore(int value)
@@ -166,10 +162,6 @@ void GameSession::decreasePlayerScore(int value)
             m_state.currentStage = State::Stage::RoundFinished;
         }
     }
-
-    m_state.questionCategoryNum = -1;
-    m_state.questionPriceNum = -1;
-    m_state.playerNum = -1;
 }
 
 void GameSession::nextRound()
