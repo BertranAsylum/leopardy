@@ -19,7 +19,7 @@ Canvas::~Canvas()
 Canvas::Canvas()
 {}
 
-Window* Canvas::window()
+Window *Canvas::window()
 {
     return m_window;
 }
@@ -29,7 +29,7 @@ void Canvas::clear()
     clear(D2D1::ColorF{D2D1::ColorF::Gray});
 }
 
-void Canvas::clear(const D2D1::ColorF& color)
+void Canvas::clear(const D2D1::ColorF &color)
 {
     m_renderTarget->Clear(color);
 }
@@ -46,13 +46,13 @@ void Canvas::end()
     m_renderTarget->EndDraw();
 }
 
-void Canvas::setTransform(const D2D1::Matrix3x2F& matrix)
+void Canvas::setTransform(const D2D1::Matrix3x2F &matrix)
 {
     assert(m_renderTarget);
     m_renderTarget->SetTransform(matrix);
 }
 
-void Canvas::addTransform(const D2D1::Matrix3x2F& matrix)
+void Canvas::addTransform(const D2D1::Matrix3x2F &matrix)
 {
     assert(m_renderTarget);
     D2D1::Matrix3x2F currentMatrix;
@@ -93,6 +93,26 @@ void Canvas::drawText(const std::wstring &text, const Font &font, const TextLayo
     m_renderTarget->DrawText(text.c_str(), text.size(), format.handle(), layout.rect(), brush.handle());
 }
 
+void Canvas::drawShadowedText(const std::wstring &text, const Font &font, const TextLayout &layout,
+                              const D2D1::ColorF &textColor, const D2D1::ColorF &shadowColor)
+{
+    Brush textBrush(m_renderTarget, textColor);
+    Brush shadowBrush(m_renderTarget, shadowColor);
+    TextFormat format(m_writeFactory, font);
+
+    D2D1_RECT_F shadowRect = layout.rect();
+    shadowRect.left += 2.0f;
+    shadowRect.right += 2.0f;
+    shadowRect.top += 2.0f;
+    shadowRect.bottom += 2.0f;
+
+    format.handle()->SetTextAlignment(layout.hAlignment());
+    format.handle()->SetParagraphAlignment(layout.vAlignment());
+
+    m_renderTarget->DrawText(text.c_str(), text.size(), format.handle(), shadowRect, shadowBrush.handle());
+    m_renderTarget->DrawText(text.c_str(), text.size(), format.handle(), layout.rect(), textBrush.handle());
+}
+
 void Canvas::drawRect(const D2D1_RECT_F &rect, const ShapeStyle &style)
 {
     if (style.fill()) {
@@ -119,7 +139,7 @@ void Canvas::drawRoundedRect(const D2D1_ROUNDED_RECT &rect, const ShapeStyle &st
     }
 }
 
-bool Canvas::init(Window* window)
+bool Canvas::init(Window *window)
 {
     if (!window) {
         return false;
@@ -132,13 +152,14 @@ bool Canvas::init(Window* window)
     RECT rect;
     GetClientRect(window->handle(), &rect);
     if (m_factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
-        D2D1::HwndRenderTargetProperties(window->handle(), D2D1::SizeU(rect.right, rect.bottom)),
-        &m_renderTarget) != S_OK) {
+                                          D2D1::HwndRenderTargetProperties(
+                                              window->handle(), D2D1::SizeU(rect.right, rect.bottom)),
+                                          &m_renderTarget) != S_OK) {
         return false;
     }
 
-    if (DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(m_writeFactory), 
-        reinterpret_cast<IUnknown **>(&m_writeFactory)) != S_OK) {
+    if (DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(m_writeFactory),
+                            reinterpret_cast<IUnknown**>(&m_writeFactory)) != S_OK) {
         return false;
     }
 

@@ -14,6 +14,11 @@ void TextLabel::setText(const std::wstring &text)
     m_text = text;
 }
 
+void TextLabel::setShadowed(bool shadowed)
+{
+    m_shadowed = shadowed;
+}
+
 void TextLabel::onPaint(Canvas *canvas)
 {
     D2D1_RECT_F bounding = D2D1::RectF(
@@ -27,7 +32,13 @@ void TextLabel::onPaint(Canvas *canvas)
     layout.setAlignment(TextLayout::HAlignment::Center);
     layout.setAlignment(TextLayout::VAlignment::Center);
 
-    canvas->drawText(m_text, m_font, layout, Style::color(Style::ColorTag::Foreground));
+    if (m_shadowed) {
+        canvas->drawShadowedText(m_text, m_font, layout, Style::color(Style::ColorTag::Foreground),
+                                 Style::color(Style::ColorTag::Shadow));
+    }
+    else {
+        canvas->drawText(m_text, m_font, layout, Style::color(Style::ColorTag::Foreground));
+    }
 
     Widget::onPaint(canvas);
 }

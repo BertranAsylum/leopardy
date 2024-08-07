@@ -58,6 +58,8 @@ D2D1::ColorF Style::color(ColorTag tag)
             return {1.0f, 1.0f, 1.0f};
         case ColorTag::Background:
             return {0.2f, 0.2f, 0.2f};
+        case ColorTag::Shadow:
+            return {0.0f, 0.0f, 0.0f};
     }
     return {0.0f, 0.0f, 0.0f};
 }

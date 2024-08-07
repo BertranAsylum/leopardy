@@ -9,6 +9,7 @@ public:
     explicit TextLabel(const std::wstring &text = L"");
 
     void setText(const std::wstring &text);
+    void setShadowed(bool shadowed);
 
 protected:
     void onPaint(Canvas *canvas) override;
@@ -16,4 +17,5 @@ protected:
 private:
     Font m_font;
     std::wstring m_text;
+    bool m_shadowed = false;
 };

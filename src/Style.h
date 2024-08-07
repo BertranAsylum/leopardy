@@ -22,7 +22,8 @@ public:
 
     enum class ColorTag {
         Foreground,
-        Background
+        Background,
+        Shadow
     };
 
     static Font font(FontSize size = FontSize::Default);
