@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Card.h"
+#include "TimeredCard.h"
 #include "Participant.h"
 
 class TextLabel;
 
-class PlayerCard : public Card {
+class PlayerCard : public TimeredCard {
 public:
     explicit PlayerCard(const Player &player);
     void setActive(bool active);

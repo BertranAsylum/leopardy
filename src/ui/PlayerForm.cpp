@@ -17,12 +17,22 @@ void PlayerForm::setup(GameController *gameController, Widget *parent)
             reset();
         }
         else if (event->as<PlayerChoosing>()
-            || event->as<QuestionChosen>()
-            || event->as<PlayerAnswering>()) {
+            || event->as<QuestionChosen>()) {
+            updatePlayersActiveSign();
+        }
+        else if (event->as<PlayerAnswering>()) {
+            const auto playerNum = m_gameController->gameSession()->state().playerNum;
+            auto *playerCard = dynamic_cast<PlayerCard*>(m_playerGrid->children()[playerNum]);
+            playerCard->arm(10s);
+
             updatePlayersActiveSign();
         }
         else if (event->as<PlayerIsRight>()
             || event->as<PlayerIsWrong>()) {
+            const auto playerNum = m_gameController->gameSession()->state().playerNum;
+            auto *playerCard = dynamic_cast<PlayerCard*>(m_playerGrid->children()[playerNum]);
+            playerCard->disarm();
+
             updatePlayersActiveSign();
             updatePlayersScore();
         }
