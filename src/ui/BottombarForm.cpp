@@ -41,9 +41,11 @@ void BottombarForm::setup(GameController *gameController, Widget *parent)
             switch (m_gameController->thisParticipant()->role()) {
                 case Participant::Role::Leader:
                     setupForLeader();
+                    resetForLeader();
                     break;
                 case Participant::Role::Player:
                     setupForPlayer();
+                    resetForPlayer();
                     break;
                 case Participant::Role::Observer:
                     auto *blankBar = new Toolbar(1);
@@ -260,8 +262,6 @@ void BottombarForm::setupForLeader()
             updateAnswerPage(e->answer);
         }
     });
-
-    resetForLeader();
 }
 
 void BottombarForm::setupForPlayer()
@@ -291,8 +291,6 @@ void BottombarForm::setupForPlayer()
             }
         }
     });
-
-    resetForPlayer();
 }
 
 void BottombarForm::updateAnswerPage(const std::wstring &answer)
