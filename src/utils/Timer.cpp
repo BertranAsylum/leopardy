@@ -9,6 +9,11 @@ void Timer::start(const std::chrono::duration<double, std::milli> &msec)
     m_durationMsec = msec;
 }
 
+void Timer::stop()
+{
+    m_durationMsec = 0ms;
+}
+
 std::chrono::duration<double, std::milli> Timer::remained() const
 {
     const auto elapsed = std::chrono::system_clock::now() - m_start;

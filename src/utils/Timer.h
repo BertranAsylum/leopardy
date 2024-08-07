@@ -10,6 +10,7 @@ public:
     Timer();
 
     void start(const std::chrono::duration<double, std::milli> &msec);
+    void stop();
     std::chrono::duration<double, std::milli> remained() const;
     double progress() const;
     bool finished() const;
