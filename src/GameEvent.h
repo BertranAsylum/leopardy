@@ -67,6 +67,7 @@ struct PlayerChoosing : GameEvent {
 };
 
 struct QuestionChosen : GameEvent {
+    int roundNum = -1;
     int categoryNum = -1;
     int priceNum = -1;
     bool local() const override { return false; }

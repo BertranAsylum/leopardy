@@ -72,7 +72,7 @@ void RoundForm::reset()
         assert("Game don't support more than 6 categories" && round.categories.size() <= 6);
 
         auto *roundPage = new GridLayout(2, 3);
-        roundPage->setId(L"RoundPage" + std::to_wstring(roundNum++));
+        roundPage->setId(L"RoundPage" + std::to_wstring(roundNum));
         roundPage->setMargins(10.0f);
         roundPage->adjustWidgetSize(true);
 
@@ -91,19 +91,21 @@ void RoundForm::reset()
                 auto priceNum = 0;
                 for (auto &card : category.cards) {
                     auto *priceButton = cardWidget->priceButton(card.price);
-                    priceButton->onMouseRelease([this, categoryNum, priceNum](int, int)
+                    priceButton->onMouseRelease([this, roundNum, categoryNum, priceNum](int, int)
                     {
                         auto questionChoosen = std::make_shared<QuestionChosen>();
+                        questionChoosen->roundNum = roundNum;
                         questionChoosen->categoryNum = categoryNum;
                         questionChoosen->priceNum = priceNum;
                         m_gameController->pushEvent(questionChoosen);
                     });
                     // TODO: Move to setup()
                     m_gameController->onEvent(
-                        [categoryNum, priceNum, priceButton](const std::shared_ptr<GameEvent> &event)
+                        [roundNum, categoryNum, priceNum, priceButton](const std::shared_ptr<GameEvent> &event)
                         {
                             if (auto *e = event->as<QuestionChosen>()) {
-                                if (e->categoryNum == categoryNum
+                                if (e->roundNum == roundNum
+                                    && e->categoryNum == categoryNum
                                     && e->priceNum == priceNum) {
                                     priceButton->hide();
                                 }
@@ -114,6 +116,7 @@ void RoundForm::reset()
                 ++categoryNum;
             }
         }
+        ++roundNum;
         m_roundPager->addPage(roundPage);
     }
     m_roundPager->addPage(m_questionPage);

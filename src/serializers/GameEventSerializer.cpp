@@ -34,7 +34,7 @@ std::ostream &operator<<(std::ostream &s, const GameEvent *ep)
         s << bytes(8) << bytes(cep->playerNum);
     }
     else if (auto *cep = ep->as<QuestionChosen>()) {
-        s << bytes(9) << bytes(cep->categoryNum) << bytes(cep->priceNum);
+        s << bytes(9) << bytes(cep->roundNum) << bytes(cep->categoryNum) << bytes(cep->priceNum);
     }
     else if (auto *cep = ep->as<PlayerAnswerRequest>()) {
         s << bytes(10) << bytes(cep->playerNum);
@@ -117,7 +117,7 @@ std::istream &operator>>(std::istream &s, GameEvent *&ep)
         }
         case 9: {
             auto *cep = new QuestionChosen;
-            s >> bytes(cep->categoryNum) >> bytes(cep->priceNum);
+            s >> bytes(cep->roundNum) >> bytes(cep->categoryNum) >> bytes(cep->priceNum);
             ep = cep;
             break;
         }
