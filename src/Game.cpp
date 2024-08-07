@@ -221,6 +221,6 @@ void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
         m_gameSession.nextRound();
     }
     else if (auto *e = event->as<PlayerWin>()) {
-        m_gameSession.nextRound();
+        m_gameSession.playerWin(e->playerNum);
     }
 }
