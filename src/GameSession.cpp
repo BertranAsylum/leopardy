@@ -139,7 +139,12 @@ void GameSession::increasePlayerScore(int value)
         m_state.currentStage = State::Stage::SelectingPlayer;
     }
     else {
-        m_state.currentStage = State::Stage::RoundFinished;
+        if (m_state.currentRound == m_gameSet.rounds.size() - 1) {
+            m_state.currentStage = State::Stage::GameFinished;
+        }
+        else {
+            m_state.currentStage = State::Stage::RoundFinished;
+        }
     }
 }
 
