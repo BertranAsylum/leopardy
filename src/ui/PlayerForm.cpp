@@ -1,6 +1,7 @@
 #include "PlayerForm.h"
 
 #include "GameSession.h"
+#include "Constants.h"
 #include "widgets/GridLayout.h"
 #include "widgets/FrameLayout.h"
 #include "widgets/PlayerCard.h"
@@ -23,7 +24,7 @@ void PlayerForm::setup(GameController *gameController, Widget *parent)
         else if (event->as<PlayerAnswering>()) {
             const auto playerNum = m_gameController->gameSession()->state().playerNum;
             auto *playerCard = dynamic_cast<PlayerCard*>(m_playerGrid->children()[playerNum]);
-            playerCard->arm(10s);
+            playerCard->arm(Constants::answeringTime());
 
             updatePlayersActiveSign();
         }

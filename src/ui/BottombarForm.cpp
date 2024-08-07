@@ -1,5 +1,6 @@
 #include "BottombarForm.h"
 
+#include "Constants.h"
 #include "widgets/FrameLayout.h"
 #include "widgets/TimeredTextButton.h"
 #include "widgets/TimeredTextInput.h"
@@ -277,13 +278,13 @@ void BottombarForm::setupForPlayer()
             m_pager->switchTo(static_cast<int>(PlayerPage::Blank));
         }
         else if (event->as<QuestionChosen>()) {
-            m_tryAnswerButton->arm(3s);
+            m_tryAnswerButton->arm(Constants::tryAnswerDelay());
             m_pager->switchTo(static_cast<int>(PlayerPage::TryAnswer));
         }
         else if (auto *e = event->as<PlayerAnswering>()) {
             if (e->playerNum == m_gameController->gameSession()->thisPlayerNum()) {
                 m_answerInput->clearText();
-                m_answerInput->arm(10s);
+                m_answerInput->arm(Constants::answeringTime());
                 m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
             }
             else {
