@@ -104,22 +104,25 @@ void MenuForm::setup(GameStarter *gameStarter, Widget *parent)
 
     createGameButton->onMouseRelease([pager](int, int) { pager->switchTo(1); });
     backFromCreateGameButton->onMouseRelease([pager](int, int) { pager->switchTo(0); });
-    startCreatedGameButton->onMouseRelease([gameStarter, leaderNicknameInput, createdServerAddressInput](int, int)
-    {
-        gameStarter->createGame({
-            .nickname = leaderNicknameInput->text(),
-            .serverAddress = createdServerAddressInput->text()
+    startCreatedGameButton->onMouseRelease(
+        [pager, gameStarter, leaderNicknameInput, createdServerAddressInput](int, int)
+        {
+            gameStarter->createGame({
+                .nickname = leaderNicknameInput->text(),
+                .serverAddress = createdServerAddressInput->text()
+            });
+            pager->switchTo(0);
         });
-    });
 
     joinGameButton->onMouseRelease([pager](int, int) { pager->switchTo(2); });
     backFromJoinGameButton->onMouseRelease([pager](int, int) { pager->switchTo(0); });
-    startJoinedGameButton->onMouseRelease([gameStarter, playerNicknameInput, joinedServerAddressInput](int, int)
+    startJoinedGameButton->onMouseRelease([pager, gameStarter, playerNicknameInput, joinedServerAddressInput](int, int)
     {
         gameStarter->joinGameAsPlayer({
             .nickname = playerNicknameInput->text(),
             .serverAddress = joinedServerAddressInput->text()
         });
+        pager->switchTo(0);
     });
 
     quitButton->onMouseRelease([](int, int) { exit(0); });
