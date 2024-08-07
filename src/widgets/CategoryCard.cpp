@@ -12,6 +12,7 @@ CategoryCard::CategoryCard(const std::wstring &name, const GameSet::Category &ca
 
     auto *categoryNameLabel = new TextLabel(name);
     categoryNameLabel->setId(L"CategoryNameLabel");
+    categoryNameLabel->setShadowed(true);
 
     auto *gridLayout = new GridLayout(category.cards.size() + 2, 1);
     gridLayout->setId(L"GridLayout");

@@ -7,6 +7,7 @@ QuestionCard::QuestionCard(const GameSet::Card &card)
     auto *question = new TextLabel(card.question);
     question->setId(L"QuestionLabel");
     question->setMouseTransparent(true);
+    question->setShadowed(true);
 
     auto *frameLayout = new FrameLayout(question);
     frameLayout->setId(L"QuestionFrameLayout");
