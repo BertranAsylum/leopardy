@@ -60,9 +60,12 @@ void RoundForm::reset()
 
     m_winnerLabel = new TextLabel;
     m_winnerLabel->setId(L"WinnerLabel");
+    m_winnerLabel->setFontSize(Style::FontSize::Large);
+    m_winnerLabel->setShadowed(true);
 
     auto *winnerPage = new FrameLayout(m_winnerLabel);
     winnerPage->setId(L"WinnerPage");
+    winnerPage->adjustWidgetSize(true);
 
     int roundNum = 1;
     const auto &rounds = session->gameSet().rounds;
