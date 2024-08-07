@@ -14,6 +14,11 @@ void TextLabel::setText(const std::wstring &text)
     m_text = text;
 }
 
+void TextLabel::setFontSize(Style::FontSize size)
+{
+    m_font.setSize(Style::font(size).size());
+}
+
 void TextLabel::setShadowed(bool shadowed)
 {
     m_shadowed = shadowed;

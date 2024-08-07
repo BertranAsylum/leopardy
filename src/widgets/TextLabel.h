@@ -1,14 +1,15 @@
 #pragma once
 
 #include "Widget.h"
+#include "Style.h"
 #include "direct/Font.h"
-#include "direct/ShapeStyle.h"
 
 class TextLabel : public Widget {
 public:
     explicit TextLabel(const std::wstring &text = L"");
 
     void setText(const std::wstring &text);
+    void setFontSize(Style::FontSize size);
     void setShadowed(bool shadowed);
 
 protected:
