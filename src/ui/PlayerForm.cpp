@@ -37,7 +37,10 @@ void PlayerForm::setup(GameController *gameController, Widget *parent)
             updatePlayersActiveSign();
             updatePlayersScore();
         }
-        updatePlayerGrid();
+
+        if (!event->as<GameReset>()) {
+            updatePlayerGrid();
+        }
     });
 
     m_playerGrid = new GridLayout(1, 3);

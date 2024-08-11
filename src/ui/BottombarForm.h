@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 class Widget;
 class Pager;
@@ -8,6 +9,7 @@ class Toolbar;
 class TimeredTextButton;
 class TimeredTextInput;
 class GameController;
+class GameEvent;
 
 class BottombarForm {
 public:
@@ -17,8 +19,8 @@ private:
     void resetForLeader();
     void resetForPlayer();
 
-    void setupForLeader();
-    void setupForPlayer();
+    void handleLeaderEvent(const std::shared_ptr<GameEvent> &event);
+    void handlePlayerEvent(const std::shared_ptr<GameEvent> &event);
 
     void updateAnswerPage(const std::wstring &answer);
 

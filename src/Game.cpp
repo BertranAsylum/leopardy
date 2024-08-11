@@ -5,6 +5,8 @@
 #include "GameSetLoader.h"
 #include "GameOptionsLoader.h"
 
+#include <cassert>
+
 static const std::wstring networkConnectionErrorMessage =
     L"Network error\n\n"
     L"Can't connect to server";
@@ -20,7 +22,7 @@ static const std::wstring lobbyIsFullMessage =
 
 Game::Game(Widget *window)
 {
-    m_eventCallbacks.emplace_back([this](const std::shared_ptr<GameEvent> &event) { onGameEvent(event); });
+    m_mainEventCallback = [this](const std::shared_ptr<GameEvent> &event) { onGameEvent(event); };
     m_mainForm.setup(this, window);
 }
 
@@ -40,8 +42,8 @@ bool Game::createGame(const GameOptions &opts)
     Leader leader;
     leader.nickname = opts.nickname;
 
+    m_gameSession = std::make_shared<GameSession>(GameSetLoader::load(), leader);
     m_thisParticipant = std::make_shared<Leader>(leader);
-    m_gameSession.init(GameSetLoader::load(), leader);
     m_mainForm.showGame();
 
     pushEvent(std::make_shared<UiReset>());
@@ -73,17 +75,22 @@ bool Game::joinGameAsObserver(const GameOptions &opts)
 bool Game::quitToMenu()
 {
     m_mainForm.showMenu();
+    m_networkChannel.reset();
+    m_gameSession.reset();
+    m_thisParticipant.reset();
     return true;
 }
 
 const Participant *Game::thisParticipant()
 {
+    assert(m_thisParticipant);
     return m_thisParticipant.get();
 }
 
 const GameSession *Game::gameSession() const
 {
-    return &m_gameSession;
+    assert(m_gameSession);
+    return m_gameSession.get();
 }
 
 void Game::onEvent(const EventCallback &callback)
@@ -94,14 +101,19 @@ void Game::onEvent(const EventCallback &callback)
 void Game::pushEvent(const std::shared_ptr<GameEvent> &event)
 {
     if (!event->local()) {
-        if (!m_networkChannel.sendMessage(Network::Channel::Message(event.get()))) {
-            raiseError(networkLostErrorMessage + L": " + m_networkChannel.error());
+        if (!m_networkChannel->sendMessage(Network::Channel::Message(event.get()))) {
+            raiseError(networkLostErrorMessage + L": " + m_networkChannel->error());
             return;
         }
     }
-    auto callbacks = m_eventCallbacks;
-    for (auto &c : callbacks) {
-        c(event);
+
+    m_mainEventCallback(event);
+    if (!event->internal()) {
+        // NOTE: m_eventCallbacks may be modified in callback
+        auto callbacks = m_eventCallbacks;
+        for (auto &c : callbacks) {
+            c(event);
+        }
     }
 }
 
@@ -112,15 +124,16 @@ void Game::raiseError(const std::wstring &message)
 
 bool Game::initNetworkChannel(const std::wstring &address)
 {
-    if (!m_networkChannel.connect(address)) {
-        raiseError(networkConnectionErrorMessage + L": " + m_networkChannel.error());
+    m_networkChannel = std::make_shared<Network::Channel>();
+    if (!m_networkChannel->connect(address)) {
+        raiseError(networkConnectionErrorMessage + L": " + m_networkChannel->error());
         return false;
     }
-    m_networkChannel.onMessage([this](const Network::Channel::Message &msg)
+    m_networkChannel->onMessage([this](const Network::Channel::Message &msg)
     {
         Application::push([this, msg]() { onNetworkChannelMessage(msg); });
     });
-    m_networkChannel.onError([this](const std::wstring &message)
+    m_networkChannel->onError([this](const std::wstring &message)
     {
         Application::push([this, message]() { raiseError(networkConnectionErrorMessage + L": " + message); });
     });
@@ -141,25 +154,30 @@ void Game::onNetworkChannelMessage(const Network::Channel::Message &msg)
     }
 
     const std::shared_ptr<GameEvent> eventShared(event);
-    auto callbacks = m_eventCallbacks;
-    for (auto &c : callbacks) {
-        c(eventShared);
+    m_mainEventCallback(eventShared);
+    if (!eventShared->internal()) {
+        // NOTE: m_eventCallbacks may be modified in callback
+        auto callbacks = m_eventCallbacks;
+        for (auto &c : callbacks) {
+            c(eventShared);
+        }
     }
 }
 
 void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
 {
     if (auto *e = event->as<GameSessionSync>()) {
-        if (!m_gameSession.initialized()) {
-            m_gameSession = e->session;
+        if (!m_gameSession) {
+            m_gameSession = std::make_shared<GameSession>(e->session);
             m_mainForm.showGame();
         }
     }
     else if (auto *e = event->as<PlayerJoinRequest>()) {
         if (m_thisParticipant->role() == Participant::Role::Leader) {
-            if (m_gameSession.players().size() < 3 || m_gameSession.hasPlayer(e->player)) {
+            assert(m_gameSession);
+            if (m_gameSession->players().size() < 3 || m_gameSession->hasPlayer(e->player)) {
                 auto sync = std::make_shared<GameSessionSync>();
-                sync->session = m_gameSession;
+                sync->session = *m_gameSession;
                 pushEvent(sync);
 
                 auto joined = std::make_shared<PlayerJoined>();
@@ -174,34 +192,43 @@ void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
         }
     }
     else if (auto *e = event->as<PlayerJoinRejected>()) {
+        assert(m_thisParticipant);
         if (m_thisParticipant->role() == Participant::Role::Player
             && m_thisParticipant->nickname == e->player.nickname) {
             raiseError(lobbyIsFullMessage);
         }
     }
     else if (auto *e = event->as<PlayerJoined>()) {
-        const auto playerNum = m_gameSession.addPlayer(e->player);
+        assert(m_gameSession);
+        assert(m_thisParticipant);
+        const auto playerNum = m_gameSession->addPlayer(e->player);
         if (m_thisParticipant->role() == Participant::Role::Player
             && m_thisParticipant->nickname == e->player.nickname) {
-            m_gameSession.setThisPlayerNum(playerNum);
+            m_gameSession->setThisPlayerNum(playerNum);
             pushEvent(std::make_shared<UiReset>());
         }
     }
     else if (auto *e = event->as<ObserverJoined>()) {
-        m_gameSession.addObserver(e->observer);
+        assert(m_gameSession);
+        m_gameSession->addObserver(e->observer);
     }
     else if (auto *e = event->as<GameStarted>()) {
-        m_gameSession.start();
+        assert(m_gameSession);
+        m_gameSession->start();
     }
     else if (auto *e = event->as<PlayerChoosing>()) {
-        m_gameSession.choosingQuestion(e->playerNum);
+        assert(m_gameSession);
+        m_gameSession->choosingQuestion(e->playerNum);
     }
     else if (auto *e = event->as<QuestionChosen>()) {
-        m_gameSession.viewingQuestion(e->categoryNum, e->priceNum);
+        assert(m_gameSession);
+        m_gameSession->viewingQuestion(e->categoryNum, e->priceNum);
     }
     else if (auto *e = event->as<PlayerAnswerRequest>()) {
+        assert(m_thisParticipant);
         if (m_thisParticipant->role() == Participant::Role::Leader) {
-            if (m_gameSession.state().currentStage != GameSession::State::Stage::PlayerAnswering) {
+            assert(m_gameSession);
+            if (m_gameSession->state().currentStage != GameSession::State::Stage::PlayerAnswering) {
                 auto playerAnswering = std::make_shared<PlayerAnswering>();
                 playerAnswering->playerNum = e->playerNum;
                 pushEvent(playerAnswering);
@@ -209,18 +236,26 @@ void Game::onGameEvent(const std::shared_ptr<GameEvent> &event)
         }
     }
     else if (auto *e = event->as<PlayerAnswering>()) {
-        m_gameSession.playerAnswering(e->playerNum);
+        assert(m_gameSession);
+        m_gameSession->playerAnswering(e->playerNum);
     }
     else if (auto *e = event->as<PlayerIsRight>()) {
-        m_gameSession.increasePlayerScore(e->scoreIncrease);
+        assert(m_gameSession);
+        m_gameSession->increasePlayerScore(e->scoreIncrease);
     }
     else if (auto *e = event->as<PlayerIsWrong>()) {
-        m_gameSession.decreasePlayerScore(e->scoreDecrease);
+        assert(m_gameSession);
+        m_gameSession->decreasePlayerScore(e->scoreDecrease);
     }
     else if (auto *e = event->as<NextRound>()) {
-        m_gameSession.nextRound();
+        assert(m_gameSession);
+        m_gameSession->nextRound();
     }
     else if (auto *e = event->as<PlayerWin>()) {
-        m_gameSession.playerWin(e->playerNum);
+        assert(m_gameSession);
+        m_gameSession->playerWin(e->playerNum);
+    }
+    else if (auto *e = event->as<GameReset>()) {
+        quitToMenu();
     }
 }

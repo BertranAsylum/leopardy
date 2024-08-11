@@ -34,9 +34,11 @@ private:
 
 private:
     MainForm m_mainForm;
-    GameSession m_gameSession;
+    std::shared_ptr<Network::Channel> m_networkChannel;
+    std::shared_ptr<GameSession> m_gameSession;
     std::shared_ptr<Participant> m_thisParticipant;
+
+    EventCallback m_mainEventCallback;
     std::vector<EventCallback> m_eventCallbacks;
-    Network::Channel m_networkChannel;
 };
 

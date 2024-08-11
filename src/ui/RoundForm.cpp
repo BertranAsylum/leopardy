@@ -24,6 +24,10 @@ void RoundForm::setup(GameController *gameController, Widget *parent)
             updateRoundPages();
         }
         else if (auto *e = event->as<QuestionChosen>()) {
+            const auto price = m_gameController->gameSession()->gameSet().rounds[e->roundNum].categories[e->categoryNum]
+                .cards[e->priceNum].price;
+            m_roundCategoryWidgets[e->roundNum][e->categoryNum]->priceButton(price)->hide();
+
             updateQuestionPage();
             const auto questionPageNum = m_roundPager->pageCount() - 2;
             m_roundPager->switchTo(questionPageNum);
@@ -50,7 +54,8 @@ void RoundForm::setup(GameController *gameController, Widget *parent)
 
 void RoundForm::reset()
 {
-    m_roundPager->clearChildren();
+    m_roundPager->clearPages();
+    m_roundCategoryWidgets.clear();
 
     const auto *session = m_gameController->gameSession();
 
@@ -67,7 +72,7 @@ void RoundForm::reset()
     winnerPage->setId(L"WinnerPage");
     winnerPage->adjustWidgetSize(true);
 
-    int roundNum = 1;
+    int roundNum = 0;
     const auto &rounds = session->gameSet().rounds;
 
     for (auto round : rounds) {
@@ -79,6 +84,8 @@ void RoundForm::reset()
         roundPage->setMargins(10.0f);
         roundPage->adjustWidgetSize(true);
 
+        std::vector<CategoryCard*> categoryCards;
+
         auto categoryNum = 0;
         for (int row = 0; row < roundPage->rowCount(); ++row) {
             for (int col = 0; col < roundPage->colCount(); ++col) {
@@ -89,7 +96,9 @@ void RoundForm::reset()
                 const auto &category = round.categories[categoryNum];
                 auto *cardWidget = new CategoryCard(category.name, category);
                 cardWidget->setId(L"CategoryCard" + std::to_wstring(row) + std::to_wstring(col));
+
                 roundPage->addWidget(row, col, cardWidget);
+                categoryCards.push_back(cardWidget);
 
                 auto priceNum = 0;
                 for (auto &card : category.cards) {
@@ -102,25 +111,14 @@ void RoundForm::reset()
                         questionChoosen->priceNum = priceNum;
                         m_gameController->pushEvent(questionChoosen);
                     });
-                    // TODO: Move to setup()
-                    m_gameController->onEvent(
-                        [roundNum, categoryNum, priceNum, priceButton](const std::shared_ptr<GameEvent> &event)
-                        {
-                            if (auto *e = event->as<QuestionChosen>()) {
-                                if (e->roundNum == roundNum
-                                    && e->categoryNum == categoryNum
-                                    && e->priceNum == priceNum) {
-                                    priceButton->hide();
-                                }
-                            }
-                        });
                     ++priceNum;
                 }
                 ++categoryNum;
             }
         }
-        ++roundNum;
         m_roundPager->addPage(roundPage);
+        m_roundCategoryWidgets.push_back(categoryCards);
+        ++roundNum;
     }
     m_roundPager->addPage(m_questionPage);
     m_roundPager->addPage(winnerPage);

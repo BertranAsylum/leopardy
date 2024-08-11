@@ -13,7 +13,8 @@ enum class LeaderPage {
     StartGame,
     NextRound,
     ShowWinner,
-    AnswerPage,
+    Answer,
+    BackToMenu,
     Count
 };
 
@@ -21,12 +22,34 @@ enum class PlayerPage {
     Blank = 0,
     TryAnswer,
     TypeAnswer,
+    BackToMenu,
     Count
 };
 
 void BottombarForm::setup(GameController *gameController, Widget *parent)
 {
     m_gameController = gameController;
+    m_gameController->onEvent([this](const std::shared_ptr<GameEvent> &event)
+    {
+        switch (m_gameController->thisParticipant()->role()) {
+            case Participant::Role::Leader:
+                handleLeaderEvent(event);
+                break;
+            case Participant::Role::Player:
+                handlePlayerEvent(event);
+                break;
+            case Participant::Role::Observer:
+                if (event->as<UiReset>()) {
+                    auto *blankBar = new Toolbar(1);
+                    blankBar->setId(L"BlankToolbar");
+                    auto *blankPage = new FrameLayout(blankBar);
+                    blankPage->setId(L"BlankPage");
+                    m_pager->clearPages();
+                    m_pager->addPage(blankPage);
+                }
+                break;
+        }
+    });
 
     m_pager = new Pager;
     m_pager->setId(L"Pager");
@@ -35,29 +58,6 @@ void BottombarForm::setup(GameController *gameController, Widget *parent)
     frameLayout->setId(L"FrameLayout");
     frameLayout->adjustWidgetSize(true);
     frameLayout->setParent(parent);
-
-    m_gameController->onEvent([this](const std::shared_ptr<GameEvent> &event)
-    {
-        if (event->as<UiReset>()) {
-            switch (m_gameController->thisParticipant()->role()) {
-                case Participant::Role::Leader:
-                    setupForLeader();
-                    resetForLeader();
-                    break;
-                case Participant::Role::Player:
-                    setupForPlayer();
-                    resetForPlayer();
-                    break;
-                case Participant::Role::Observer:
-                    auto *blankBar = new Toolbar(1);
-                    blankBar->setId(L"BlankToolbar");
-                    auto *blankPage = new FrameLayout(blankBar);
-                    blankPage->setId(L"BlankPage");
-                    m_pager->addPage(blankPage);
-                    break;
-            }
-        }
-    });
 }
 
 void BottombarForm::resetForLeader()
@@ -83,6 +83,7 @@ void BottombarForm::resetForLeader()
     nextRoundBar->setId(L"NextRoundToolbar");
     nextRoundBar->setWidget(0, nextRoundButton);
     auto *nextRoundPage = new FrameLayout(nextRoundBar);
+    nextRoundPage->adjustWidgetSize(true);
     nextRoundPage->setId(L"NextRoundPage");
 
     auto *showWinnerButton = new TextButton(L"Show winner");
@@ -112,14 +113,24 @@ void BottombarForm::resetForLeader()
     answerPage->adjustWidgetSize(true);
     answerPage->setId(L"AnswerPage");
 
+    auto *backToMenuButton = new TextButton(L"Back to menu");
+    backToMenuButton->setId(L"BackToMenuButton");
+    auto *backToMenuBar = new Toolbar(1);
+    backToMenuBar->setId(L"BackToMenuToolbar");
+    backToMenuBar->setWidget(0, backToMenuButton);
+    auto *backToMenuPage = new FrameLayout(backToMenuBar);
+    backToMenuPage->adjustWidgetSize(true);
+    backToMenuPage->setId(L"BackToMenuPage");
+
 
     // NOTE: LeaderPage enum order
-    m_pager->clearChildren();
+    m_pager->clearPages();
     m_pager->addPage(blankPage);
     m_pager->addPage(startGamePage);
     m_pager->addPage(nextRoundPage);
     m_pager->addPage(showWinnerPage);
     m_pager->addPage(answerPage);
+    m_pager->addPage(backToMenuPage);
 
     startGameButton->onMouseRelease([this, startGameButton](int, int)
     {
@@ -156,6 +167,11 @@ void BottombarForm::resetForLeader()
         m_gameController->pushEvent(playerIsRight);
         yesButton->disable();
     });
+
+    backToMenuButton->onMouseRelease([this](int, int)
+    {
+        m_gameController->pushEvent(std::make_shared<GameReset>());
+    });
 }
 
 void BottombarForm::resetForPlayer()
@@ -186,12 +202,22 @@ void BottombarForm::resetForPlayer()
     typeAnswerPage->adjustWidgetSize(true);
     typeAnswerPage->setId(L"TypeAnswerPage");
 
+    auto *backToMenuButton = new TextButton(L"Back to menu");
+    backToMenuButton->setId(L"BackToMenuButton");
+    auto *backToMenuBar = new Toolbar(1);
+    backToMenuBar->setId(L"BackToMenuToolbar");
+    backToMenuBar->setWidget(0, backToMenuButton);
+    auto *backToMenuPage = new FrameLayout(backToMenuBar);
+    backToMenuPage->adjustWidgetSize(true);
+    backToMenuPage->setId(L"BackToMenuPage");
+
 
     // NOTE: PlayerPage enum order
-    m_pager->clearChildren();
+    m_pager->clearPages();
     m_pager->addPage(blankPage);
     m_pager->addPage(tryAnswerPage);
     m_pager->addPage(typeAnswerPage);
+    m_pager->addPage(backToMenuPage);
 
     switch (m_gameController->gameSession()->state().currentStage) {
         case GameSession::State::ViewingQestion:
@@ -202,6 +228,9 @@ void BottombarForm::resetForPlayer()
                 == m_gameController->gameSession()->thisPlayerNum()) {
                 m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
             }
+            break;
+        case GameSession::State::GameFinished:
+            m_pager->switchTo(static_cast<int>(PlayerPage::BackToMenu));
             break;
         default:
             break;
@@ -221,77 +250,86 @@ void BottombarForm::resetForPlayer()
         answer->answer = text;
         m_gameController->pushEvent(answer);
     });
+
+    backToMenuButton->onMouseRelease([this](int, int)
+    {
+        m_gameController->pushEvent(std::make_shared<GameReset>());
+    });
 }
 
-void BottombarForm::setupForLeader()
+void BottombarForm::handleLeaderEvent(const std::shared_ptr<GameEvent> &event)
 {
-    m_gameController->onEvent([this](const std::shared_ptr<GameEvent> &event)
-    {
-        if (event->as<PlayerJoined>()) {
-            if (m_gameController->gameSession()->state().currentStage == GameSession::State::Lobby) {
-                m_pager->switchTo(static_cast<int>(LeaderPage::StartGame));
-            }
+    if (event->as<UiReset>()) {
+        resetForLeader();
+    }
+    else if (event->as<PlayerJoined>()) {
+        if (m_gameController->gameSession()->state().currentStage == GameSession::State::Lobby) {
+            m_pager->switchTo(static_cast<int>(LeaderPage::StartGame));
         }
-        else if (event->as<GameStarted>()
-            || event->as<PlayerChoosing>()
-            || event->as<QuestionChosen>()
-            || event->as<NextRound>()
-            || event->as<PlayerWin>()) {
+    }
+    else if (event->as<GameStarted>()
+        || event->as<PlayerChoosing>()
+        || event->as<QuestionChosen>()
+        || event->as<NextRound>()) {
+        m_pager->switchTo(static_cast<int>(LeaderPage::Blank));
+    }
+    else if (event->as<PlayerIsRight>() || event->as<PlayerIsWrong>()) {
+        const auto stage = m_gameController->gameSession()->state().currentStage;
+        if (stage == GameSession::State::Stage::RoundFinished) {
+            m_pager->switchTo(static_cast<int>(LeaderPage::NextRound));
+            m_pager->enable();
+        }
+        else if (stage == GameSession::State::Stage::GameFinished) {
+            m_pager->switchTo(static_cast<int>(LeaderPage::ShowWinner));
+            m_pager->enable();
+        }
+        else {
             m_pager->switchTo(static_cast<int>(LeaderPage::Blank));
         }
-        else if (event->as<PlayerIsRight>() || event->as<PlayerIsWrong>()) {
-            const auto stage = m_gameController->gameSession()->state().currentStage;
-            if (stage == GameSession::State::Stage::RoundFinished) {
-                m_pager->switchTo(static_cast<int>(LeaderPage::NextRound));
-                m_pager->enable();
-            }
-            else if (stage == GameSession::State::Stage::GameFinished) {
-                m_pager->switchTo(static_cast<int>(LeaderPage::ShowWinner));
-                m_pager->enable();
-            }
-            else {
-                m_pager->switchTo(static_cast<int>(LeaderPage::Blank));
-            }
-        }
-        else if (event->as<PlayerAnswering>()) {
-            m_pager->switchTo(static_cast<int>(LeaderPage::AnswerPage));
-            m_pager->enable();
-            m_answerInput->disable();
-            m_answerInput->clearText();
-        }
-        else if (const auto *e = event->as<PlayerTypingAnswer>()) {
-            updateAnswerPage(e->answer);
-        }
-    });
+    }
+    else if (event->as<PlayerAnswering>()) {
+        m_pager->switchTo(static_cast<int>(LeaderPage::Answer));
+        m_pager->enable();
+        m_answerInput->disable();
+        m_answerInput->clearText();
+    }
+    else if (const auto *e = event->as<PlayerTypingAnswer>()) {
+        updateAnswerPage(e->answer);
+    }
+    else if (event->as<PlayerWin>()) {
+        m_pager->switchTo(static_cast<int>(LeaderPage::BackToMenu));
+    }
 }
 
-void BottombarForm::setupForPlayer()
+void BottombarForm::handlePlayerEvent(const std::shared_ptr<GameEvent> &event)
 {
-    m_gameController->onEvent([this](const std::shared_ptr<GameEvent> &event)
-    {
-        if (event->as<GameStarted>()
-            || event->as<PlayerChoosing>()
-            || event->as<PlayerIsRight>()
-            || event->as<PlayerIsWrong>()
-            || event->as<NextRound>()
-            || event->as<PlayerWin>()) {
+    if (event->as<UiReset>()) {
+        resetForPlayer();
+    }
+    else if (event->as<GameStarted>()
+        || event->as<PlayerChoosing>()
+        || event->as<PlayerIsRight>()
+        || event->as<PlayerIsWrong>()
+        || event->as<NextRound>()) {
+        m_pager->switchTo(static_cast<int>(PlayerPage::Blank));
+    }
+    else if (event->as<QuestionChosen>()) {
+        m_tryAnswerButton->arm(Constants::tryAnswerDelay());
+        m_pager->switchTo(static_cast<int>(PlayerPage::TryAnswer));
+    }
+    else if (auto *e = event->as<PlayerAnswering>()) {
+        if (e->playerNum == m_gameController->gameSession()->thisPlayerNum()) {
+            m_answerInput->clearText();
+            m_answerInput->arm(Constants::answeringTime());
+            m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
+        }
+        else {
             m_pager->switchTo(static_cast<int>(PlayerPage::Blank));
         }
-        else if (event->as<QuestionChosen>()) {
-            m_tryAnswerButton->arm(Constants::tryAnswerDelay());
-            m_pager->switchTo(static_cast<int>(PlayerPage::TryAnswer));
-        }
-        else if (auto *e = event->as<PlayerAnswering>()) {
-            if (e->playerNum == m_gameController->gameSession()->thisPlayerNum()) {
-                m_answerInput->clearText();
-                m_answerInput->arm(Constants::answeringTime());
-                m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
-            }
-            else {
-                m_pager->switchTo(static_cast<int>(PlayerPage::Blank));
-            }
-        }
-    });
+    }
+    else if (event->as<PlayerWin>()) {
+        m_pager->switchTo(static_cast<int>(PlayerPage::BackToMenu));
+    }
 }
 
 void BottombarForm::updateAnswerPage(const std::wstring &answer)

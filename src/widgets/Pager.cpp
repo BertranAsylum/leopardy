@@ -3,12 +3,16 @@
 void Pager::addPage(Widget *page)
 {
     if (page) {
-        if (!m_pages.empty()) {
-            page->hide();
-        }
+        page->setVisible(m_pages.empty());
         addChild(page);
         m_pages.push_back(page);
     }
+}
+
+void Pager::clearPages()
+{
+    Widget::clearChildren();
+    m_pages.clear();
 }
 
 void Pager::switchTo(int pageNum)

@@ -30,8 +30,7 @@ public:
     };
 
     GameSession() = default;
-    void init(const GameSet &gameSet, const Leader &leader);
-    bool initialized() const;
+    GameSession(const GameSet &gameSet, const Leader &leader);
 
     GameSet gameSet() const;
     Leader leader() const;

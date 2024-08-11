@@ -2,16 +2,9 @@
 
 #include <cassert>
 
-void GameSession::init(const GameSet &gameSet, const Leader &leader)
-{
-    m_gameSet = gameSet;
-    m_leader = leader;
-}
-
-bool GameSession::initialized() const
-{
-    return !m_gameSet.rounds.empty();
-}
+GameSession::GameSession(const GameSet &gameSet, const Leader &leader)
+    : m_gameSet(gameSet), m_leader(leader)
+{}
 
 GameSet GameSession::gameSet() const
 {
