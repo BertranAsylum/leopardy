@@ -129,7 +129,7 @@ void RoundForm::reset()
         const auto questionPageNum = m_roundPager->pageCount() - 2;
         m_roundPager->switchTo(questionPageNum);
     }
-    else if (session->state().currentStage == GameSession::State::Stage::GameFinished) {
+    else if (session->state().currentStage == GameSession::State::Stage::ShowingWinner) {
         updateWinnerPage();
         const auto winnerPageNum = m_roundPager->pageCount() - 1;
         m_roundPager->switchTo(winnerPageNum);

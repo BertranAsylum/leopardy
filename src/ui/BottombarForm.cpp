@@ -229,7 +229,7 @@ void BottombarForm::resetForPlayer()
                 m_pager->switchTo(static_cast<int>(PlayerPage::TypeAnswer));
             }
             break;
-        case GameSession::State::GameFinished:
+        case GameSession::State::ShowingWinner:
             m_pager->switchTo(static_cast<int>(PlayerPage::BackToMenu));
             break;
         default:
